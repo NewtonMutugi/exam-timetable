@@ -1,4 +1,4 @@
-const { getCourses } = require("./models/tables");
+const { getCourses, getSheets } = require("./models/tables");
 const http = require("http");
 const bodyParser = require("body-parser");
 
@@ -16,20 +16,30 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 
-app.get("/", (req, res, next) => {
+app.get("/", async (req, res, next) => {
   res.render("index", {
     docTitle: "My - Exam Timetable",
     path: "/",
+    input: "",
+    campus_choice: "CAMPUS",
+    sheets: await getSheets(),
     items_list: [],
   });
 });
 
 app.post("/search", async (req, res, next) => {
-  const { courses } = req.body;
+  const { courses, campus_choice } = req.body;
+  let mySheets = await getSheets();
   res.render("index", {
     docTitle: "My - Exam Timetable",
     path: "/",
-    items_list: await getCourses(courses.split(/[, ]+/)),
+    input: courses,
+    campus_choice: mySheets[campus_choice] || mySheets[0],
+    sheets: mySheets,
+    items_list: await getCourses(
+      courses.split(/[, ]+/),
+      parseInt(campus_choice) + 1
+    ),
   });
 });
 

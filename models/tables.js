@@ -55,7 +55,7 @@ async function getCourses(params, sheetNumber) {
     })
     .filter((ele) => ele.eleme !== null);
 
-  let secondWeekDays = variables[time[0] - 1]
+  let secondWeekDays = variables[time[1] - 1]
     .map((eleme, index) => {
       return { eleme, index };
     })
@@ -80,7 +80,6 @@ async function getCourses(params, sheetNumber) {
         )
       ) {
         let elements = [];
-        let regeSearch = `/${searchString}/`;
         elements.push(
           element.find((arr, ind) =>
             arr.includes(" ")

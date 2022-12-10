@@ -1,23 +1,29 @@
 const xlsxFile = require("read-excel-file/node");
 
-function output(sheetNumber) {
-  return new Promise((resolve, reject) => {
-    const tables = [];
-    xlsxFile("./data/Data_3.xlsx", { sheet: sheetNumber || 1 })
-      .then((rows) => {
-        rows.forEach((element) => {
-          tables.push(element);
-        });
-      })
-      .catch((err) => reject(err))
-      .finally(() =>
-        resolve({
-          variables: tables,
-        })
-      );
+async function getSheets() {
+  let sheets = [];
+  sheets = await xlsxFile.readSheetNames("./data/Data_3.xlsx");
+  sheets.forEach((eleme, index, array) => {
+    if (eleme.includes("NAI")) {
+      array[index] = "NAIR " + eleme.split("NAIROBI")[1];
+    }
   });
+  return sheets;
 }
 
+function output(sheetNumber) {
+  return new Promise(async (resolve, reject) => {
+    const tables = [];
+
+    let rows = await xlsxFile("./data/Data_3.xlsx", { sheet: sheetNumber });
+    rows.forEach((element) => {
+      tables.push(element);
+    });
+    return resolve({
+      variables: tables,
+    });
+  });
+}
 function getInterval(objectList, V, i) {
   let newParams = objectList;
 
@@ -118,25 +124,53 @@ async function getCourses(params, sheetNumber) {
       }
     });
   }
-  return foundItem.slice(0).sort(function (a, b) {
-    var [x, y] = [
-      a.day.split(" ")[1].split("/").reverse().join(),
-      b.day.split(" ")[1].split("/").reverse().join(),
-    ];
+  return foundItem;
+  // return foundItem.slice(0).sort(function (a, b) {
+  //   var [x, y] = [
+  //     a.day.split(" ")[1].split("/").reverse().join(),
+  //     b.day.split(" ")[1].split("/").reverse().join(),
+  //   ];
 
-    return x < y ? -1 : x > y ? 1 : 0;
-  });
+  //   return x < y ? -1 : x > y ? 1 : 0;
+  // });
 }
 
-async function getSheets() {
-  let sheets = [];
-  sheets = await xlsxFile.readSheetNames("./data/Data_3.xlsx");
-  sheets.forEach((eleme, index, array) => {
-    if (eleme.includes("NAI")) {
-      array[index] = "NAIR " + eleme.split("NAIROBI")[1];
+async function getAllSheetsData(params, sheetNumber = 0) {
+  return new Promise(async (resolve, reject) => {
+    if (sheetNumber && sheetNumber > 0) {
+      return resolve(
+        (await getCourses(params, sheetNumber)).slice(0).sort(function (a, b) {
+          var [x, y] = [
+            a.day.split(" ")[1].split("/").reverse().join(),
+            b.day.split(" ")[1].split("/").reverse().join(),
+          ];
+
+          return x < y ? -1 : x > y ? 1 : 0;
+        })
+      );
     }
-  });
-  return sheets;
-}
+    let sheets = await getSheets();
+    console.log(sheets);
+    let allData = [];
+    sheets.forEach(async (eleme, index) => {
+      allData.push(await getCourses(params, index + 1));
+      if (index + 1 == sheets.length) {
+        console.log(index + 1);
+        return resolve(
+          allData
+            .flat()
+            .slice(0)
+            .sort(function (a, b) {
+              var [x, y] = [
+                a.day.split(" ")[1].split("/").reverse().join(),
+                b.day.split(" ")[1].split("/").reverse().join(),
+              ];
 
-module.exports = { getCourses, getSheets };
+              return x < y ? -1 : x > y ? 1 : 0;
+            })
+        );
+      }
+    });
+  });
+}
+module.exports = { getCourses, getSheets, getAllSheetsData };

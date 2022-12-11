@@ -28,7 +28,9 @@ app.get("/", async (req, res, next) => {
 });
 
 app.post("/search", async (req, res, next) => {
-  const { courses, campus_choice } = req.body;
+  let { courses, campus_choice } = req.body;
+  courses = courses.replace(/^\,+/g, "").replace(/\,+$/g, "");
+  console.log(courses);
 
   let mySheets = await getSheets();
   res.render("index", {

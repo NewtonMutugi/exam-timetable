@@ -27,6 +27,9 @@ function output(sheetNumber) {
 function getInterval(objectList, V, i) {
   let newParams = objectList;
 
+  if (i < 0) {
+    return objectList[0];
+  }
   if (V > objectList[objectList.length - 1].index) {
     return objectList[objectList.length - 1];
   }
@@ -48,6 +51,27 @@ async function getCourses(params, sheetNumber) {
     variablesWithoutNull.push(nonArr.filter((elem) => elem !== null));
   });
 
+  // console.log(variablesWithoutNull)
+  let MAX_INDEX_NULL = [];
+  for (
+    let indexesNull = variablesWithoutNull.length - 1;
+    indexesNull > 0;
+    indexesNull--
+  ) {
+    if (variablesWithoutNull[indexesNull].length <= 0) {
+      MAX_INDEX_NULL.push(indexesNull);
+    }
+  }
+
+  function diffs(arr) {
+    return arr.slice(1).map((num, i) => (num - arr[i]) * -1);
+  }
+  let differences = diffs(MAX_INDEX_NULL);
+  let MAX_INDEX =
+    MAX_INDEX_NULL[
+      differences.indexOf(differences.find((nonOne) => nonOne > 1))
+    ];
+
   let time = [];
   variables.forEach((timeElement, timeIndex) => {
     if (timeElement.find((str) => /00AM/.test(str))) {
@@ -68,35 +92,31 @@ async function getCourses(params, sheetNumber) {
     .filter((ele) => ele.eleme !== null);
 
   let foundItem = [];
+  let j = 0;
   for (let i = 0; i < params.length; i++) {
-    let searchString = params[i];
+    let searchString = `${params[i]}`;
+
     variablesWithoutNull.forEach((element, index) => {
       if (
-        element.some((arr, indexiis) =>
-          arr.includes(" ")
-            ? arr.split(" ").join("").includes(searchString) &&
-              indexiis !== 0 &&
-              !/CH||MON||TUE||WED||THUR||FRI||SAT||:+/.test(
-                arr.split(" ").join("")
-              )
-            : arr.includes(searchString) &&
-              indexiis !== 0 &&
-              !/CH/.test(arr) &&
-              !arr.includes(":")
+        element.some((arriri, indexiis) =>
+          arriri.split(/[ ]/).join("").includes(searchString)
         )
       ) {
         let elements = [];
-        elements.push(
-          element.find((arr, ind) =>
-            arr.includes(" ")
-              ? new RegExp(`${searchString}`).test(arr.split(" ").join("")) &&
-                ind !== 0 &&
-                !/CH/.test(arr.split(" ").join(""))
-              : new RegExp(`${searchString}`, "g").test(arr) &&
-                ind !== 0 &&
-                !/CH/.test(arr)
-          )
+        elements = element.filter(
+          (arr, ind) =>
+            arr.split(/[ ]/).join("").includes(searchString) &&
+            !(
+              ind == 0 ||
+              arr.split(/[ ]/).join("").includes("CHAPEL") ||
+              arr.split(/[ ]/).join("").includes(":") ||
+              ind > MAX_INDEX ||
+              index == time[1] - 1 ||
+              arr.includes("AM") ||
+              index == time[0] - 1
+            )
         );
+
         elements.forEach((foundElement) => {
           foundItem.push({
             course_code: foundElement,
@@ -125,14 +145,6 @@ async function getCourses(params, sheetNumber) {
     });
   }
   return foundItem;
-  // return foundItem.slice(0).sort(function (a, b) {
-  //   var [x, y] = [
-  //     a.day.split(" ")[1].split("/").reverse().join(),
-  //     b.day.split(" ")[1].split("/").reverse().join(),
-  //   ];
-
-  //   return x < y ? -1 : x > y ? 1 : 0;
-  // });
 }
 
 async function getAllSheetsData(params, sheetNumber = 0) {
@@ -150,27 +162,25 @@ async function getAllSheetsData(params, sheetNumber = 0) {
       );
     }
     let sheets = await getSheets();
-    console.log(sheets);
     let allData = [];
-    sheets.forEach(async (eleme, index) => {
-      allData.push(await getCourses(params, index + 1));
-      if (index + 1 == sheets.length) {
-        console.log(index + 1);
-        return resolve(
-          allData
-            .flat()
-            .slice(0)
-            .sort(function (a, b) {
-              var [x, y] = [
-                a.day.split(" ")[1].split("/").reverse().join(),
-                b.day.split(" ")[1].split("/").reverse().join(),
-              ];
+    for (let index = 0; index < sheets.length; index++) {
+      let myData = await getCourses(params, index + 1);
+      allData.push(myData);
+    }
+    return resolve(
+      allData
+        .flat()
+        .slice(0)
+        .sort(function (a, b) {
+          var [x, y] = [
+            a.day.split(" ")[1].split("/").reverse().join(),
+            b.day.split(" ")[1].split("/").reverse().join(),
+          ];
 
-              return x < y ? -1 : x > y ? 1 : 0;
-            })
-        );
-      }
-    });
+          return x < y ? -1 : x > y ? 1 : 0;
+        })
+    );
   });
 }
+
 module.exports = { getCourses, getSheets, getAllSheetsData };

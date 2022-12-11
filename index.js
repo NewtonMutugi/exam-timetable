@@ -29,9 +29,8 @@ app.get("/", async (req, res, next) => {
 
 app.post("/search", async (req, res, next) => {
   let { courses, campus_choice } = req.body;
-  courses = courses.replace(/^\,+/g, "").replace(/\,+$/g, "");
-  console.log(courses);
-
+  courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
+  console.log(courses.length);
   let mySheets = await getSheets();
   res.render("index", {
     docTitle: "My - Exam Timetable",
@@ -42,7 +41,7 @@ app.post("/search", async (req, res, next) => {
       "ALL CAMPUSES",
     sheets: mySheets,
     items_list: await getAllSheetsData(
-      courses.split(/[, ]+/),
+      courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
       parseInt(campus_choice)
     ),
   });
@@ -50,8 +49,6 @@ app.post("/search", async (req, res, next) => {
 
 function sendMessage(courses, to, cb) {
   let table_body = ``;
-  // console.log(JSON.parse(courses))
-
   let length = 0;
 
   JSON.parse(courses).forEach((item) => {

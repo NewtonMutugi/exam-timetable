@@ -29,7 +29,30 @@ app.get("/", async (req, res, next) => {
 
 app.post("/search", async (req, res, next) => {
   const { courses, campus_choice } = req.body;
+  if(courses == undefined){
+     courses = 'ACS';
+  }
+  let mySheets = await getSheets();
+  res.render("index", {
+    docTitle: "My - Exam Timetable",
+    path: "/",
+    input: courses,
+    campus_choice:
+      mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
+      "ALL CAMPUSES",
+    sheets: mySheets,
+    items_list: await getAllSheetsData(
+      courses.split(/[, ]+/),
+      parseInt(campus_choice)
+    ),
+  });
+});
 
+app.get("/search", async (req, res, next) => {
+  const { courses, campus_choice } = req.query;
+    if(!courses){
+    return res.redirect('/');
+  }
   let mySheets = await getSheets();
   res.render("index", {
     docTitle: "My - Exam Timetable",
@@ -48,11 +71,10 @@ app.post("/search", async (req, res, next) => {
 
 function sendMessage(courses, to, cb) {
   let table_body = ``;
-  // console.log(JSON.parse(courses))
-
   let length = 0;
-
+  // console.log(JSON.parse(courses))
   JSON.parse(courses).forEach((item) => {
+     
     let temp = `<tr>
     <th scope="row" style="line-height: 24px; font-size: 16px; margin: 0;" align="left">${item.course_code}</th>
     <td style="line-height: 24px; font-size: 16px; border-top-width: 1px; border-top-color: #e2e8f0; border-top-style: solid; margin: 0; padding: 12px;" align="left" valign="top">${item.day}</td>
@@ -61,7 +83,7 @@ function sendMessage(courses, to, cb) {
     <th style="line-height: 24px; font-size: 16px; margin: 0;" align="left">${item.room}</th>
   </tr>`;
     table_body += temp;
-    length += 1;
+     length += 1;
   });
 
   let html_content = `

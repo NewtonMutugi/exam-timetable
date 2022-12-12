@@ -29,30 +29,7 @@ app.get("/", async (req, res, next) => {
 
 app.post("/search", async (req, res, next) => {
   const { courses, campus_choice } = req.body;
-  if(courses == undefined){
-     courses = 'ACS';
-  }
-  let mySheets = await getSheets();
-  res.render("index", {
-    docTitle: "My - Exam Timetable",
-    path: "/",
-    input: courses,
-    campus_choice:
-      mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
-      "ALL CAMPUSES",
-    sheets: mySheets,
-    items_list: await getAllSheetsData(
-      courses.split(/[, ]+/),
-      parseInt(campus_choice)
-    ),
-  });
-});
 
-app.get("/search", async (req, res, next) => {
-  const { courses, campus_choice } = req.query;
-    if(!courses){
-    return res.redirect('/');
-  }
   let mySheets = await getSheets();
   res.render("index", {
     docTitle: "My - Exam Timetable",
@@ -63,7 +40,7 @@ app.get("/search", async (req, res, next) => {
       "ALL CAMPUSES",
     sheets: mySheets,
     items_list: await getAllSheetsData(
-      courses.split(/[, ]+/),
+      courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
       parseInt(campus_choice)
     ),
   });
@@ -71,8 +48,10 @@ app.get("/search", async (req, res, next) => {
 
 function sendMessage(courses, to, cb) {
   let table_body = ``;
-  let length = 0;
   // console.log(JSON.parse(courses))
+
+  let length = 0;
+
   JSON.parse(courses).forEach((item) => {
      
     let temp = `<tr>

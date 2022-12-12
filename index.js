@@ -29,7 +29,9 @@ app.get("/", async (req, res, next) => {
 
 app.post("/search", async (req, res, next) => {
   const { courses, campus_choice } = req.body;
-
+  // if(courses == undefined){
+  //    courses = 'ACS';
+  // }
   let mySheets = await getSheets();
   res.render("index", {
     docTitle: "My - Exam Timetable",
@@ -40,7 +42,28 @@ app.post("/search", async (req, res, next) => {
       "ALL CAMPUSES",
     sheets: mySheets,
     items_list: await getAllSheetsData(
-      courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
+      courses.split(/[, ]+/),
+      parseInt(campus_choice)
+    ),
+  });
+});
+
+app.get("/search", async (req, res, next) => {
+  const { courses, campus_choice } = req.query;
+    if(!courses){
+    return res.redirect('/');
+  }
+  let mySheets = await getSheets();
+  res.render("index", {
+    docTitle: "My - Exam Timetable",
+    path: "/",
+    input: courses,
+    campus_choice:
+      mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
+      "ALL CAMPUSES",
+    sheets: mySheets,
+    items_list: await getAllSheetsData(
+      courses.split(/[, ]+/),
       parseInt(campus_choice)
     ),
   });
@@ -48,10 +71,8 @@ app.post("/search", async (req, res, next) => {
 
 function sendMessage(courses, to, cb) {
   let table_body = ``;
-  // console.log(JSON.parse(courses))
-
   let length = 0;
-
+  // console.log(JSON.parse(courses))
   JSON.parse(courses).forEach((item) => {
      
     let temp = `<tr>
@@ -293,4 +314,4 @@ app.use((req, res, next) => {
     .render("404", { docTitle: "404 Page Not Found Error", path: "/404" });
 });
 
-server.listen(3000);
+server.listen();

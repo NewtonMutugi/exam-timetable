@@ -113,7 +113,8 @@ async function getCourses(params, sheetNumber) {
               ind > MAX_INDEX ||
               index == time[1] - 1 ||
               arr.includes("AM") ||
-              index == time[0] - 1
+              index == time[0] - 1 ||
+              arr.includes("PM")
             )
         );
 

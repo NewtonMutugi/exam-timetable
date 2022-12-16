@@ -32,7 +32,6 @@ app.get("/", async (req, res, next) => {
 app.post("/search", async (req, res, next) => {
   let { courses, campus_choice } = req.body;
   courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
-  console.log(courses.length);
   let mySheets = await getSheets();
   res.render("index", {
     docTitle: "My - Exam Timetable",

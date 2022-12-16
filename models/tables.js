@@ -1,8 +1,10 @@
 const xlsxFile = require("read-excel-file/node");
+let Semester = "August";
+let fileName = `./data/${new Date().getFullYear()}/${Semester.toUpperCase()}-SEMESTER/Data_3.xlsx`;
 
 async function getSheets() {
   let sheets = [];
-  sheets = await xlsxFile.readSheetNames("./data/Data_3.xlsx");
+  sheets = await xlsxFile.readSheetNames(fileName);
   sheets.forEach((eleme, index, array) => {
     if (eleme.includes("NAI")) {
       array[index] = "NAIR " + eleme.split("NAIROBI")[1];
@@ -15,7 +17,7 @@ function output(sheetNumber) {
   return new Promise(async (resolve, reject) => {
     const tables = [];
 
-    let rows = await xlsxFile("./data/Data_3.xlsx", { sheet: sheetNumber });
+    let rows = await xlsxFile(fileName, { sheet: sheetNumber });
     rows.forEach((element) => {
       tables.push(element);
     });
@@ -184,4 +186,4 @@ async function getAllSheetsData(params, sheetNumber = 0) {
   });
 }
 
-module.exports = { getCourses, getSheets, getAllSheetsData };
+module.exports = { Semester, getCourses, getSheets, getAllSheetsData };

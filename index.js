@@ -1,6 +1,8 @@
-const { getCourses, getSheets, getAllSheetsData } = require("./models/tables");
+const { getSheets, getAllSheetsData, Semester } = require("./models/tables");
 const http = require("http");
+const multer = require("multer");
 const bodyParser = require("body-parser");
+const fs = require("fs");
 
 const express = require("express");
 const path = require("path");
@@ -222,6 +224,7 @@ function sendMessage(courses, to, cb) {
                                     </td>
                                   </tr>
                                 </tbody>
+                               
                               </table>
                               <table class="s-6 w-full" role="presentation" border="0" cellpadding="0" cellspacing="0" style="width: 100%;" width="100%">
                                 <tbody>
@@ -303,6 +306,82 @@ app.post("/send/email", (req, res, next) => {
   sendMessage(courses, to, (dataReceived) => {
     let sending = dataReceived;
     res.json(sending);
+  });
+});
+
+app.get("/admin", (req, res, next) => {
+  // const { courses, to } = req.body;
+  var folders = fs.readdirSync("data/2022");
+  var objArray = [];
+  folders.forEach((folder) => {
+    var obj = {};
+    var files = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
+    obj.folder = folder;
+    obj.files = files.map((fila) => {
+      return {
+        name: fila,
+        size:
+          fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
+            .size < 1024
+            ? fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
+                .size + " KB"
+            : fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
+                .size /
+                (1024 * 1024).toFixed(2) +
+              " MB",
+      };
+    });
+    objArray.push(obj);
+  });
+  res.render("admin/uploads", { files: objArray });
+});
+
+app.get("/admin/dashboard", (req, res, next) => {
+  // const { courses, to } = req.body;
+  res.render("admin/dashboard");
+});
+
+var storage = multer.diskStorage({
+  destination: `data/${new Date().getFullYear()}/${Semester.toUpperCase()}-SEMESTER`,
+  filename: function (req, file, callback) {
+    callback(null, file.originalname);
+  },
+});
+
+var upload = multer({ storage: storage }).single("file");
+
+app.post("/upload", async (req, res) => {
+  upload(req, res, function (err) {
+    var folders = fs.readdirSync("data/2022");
+    var objArray = [];
+    folders.forEach((folder) => {
+      var obj = {};
+      var files = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
+      obj.folder = folder;
+      obj.files = files.map((fila) => {
+        return {
+          name: fila,
+          size:
+            fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
+              .size < 1024
+              ? fs.statSync(
+                  `data/${new Date().getFullYear()}/${folder}/${fila}`
+                ).size + " KB"
+              : fs.statSync(
+                  `data/${new Date().getFullYear()}/${folder}/${fila}`
+                ).size /
+                  (1024 * 1024).toFixed(2) +
+                " MB",
+        };
+      });
+      objArray.push(obj);
+    });
+    if (err) {
+      res.status(400).send({ error: err, files: objArray });
+    } else {
+      var FileName = req.file.filename;
+      res.status(200).send({ message: "success", files: objArray });
+    }
   });
 });
 

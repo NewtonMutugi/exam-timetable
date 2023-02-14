@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload JavaScript with Progress Ba | CodingNepal</title>
+    <title>File Upload Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
     <style>
         /* Import Google font - Poppins */
@@ -158,11 +158,13 @@
 
 <body>
     <div class="wrapper">
-        <header>File Uploader JavaScript</header>
+        <header>Upload excel Timetable</header>
         <form action="#">
             <input class="file-input" id="file-upload" accept=".xlsx,.xls" type="file" name="file" hidden>
             <i class="fas fa-cloud-upload-alt"></i>
             <p>Browse File to Upload</p>
+            <input type="hidden" name="semester" id="semester">
+            <input type="hidden" name="year" id="year">
         </form>
         <section class="progress-area"></section>
         <section class="uploaded-area"></section>
@@ -177,7 +179,6 @@
         form.addEventListener("click", () => {
             fileInput.click();
         });
-        // console.log('<%- (JSON.stringify(files)) %>')
 
         let uploadedHTML = "";
         JSON.parse('<%- JSON.stringify(files) %>').forEach((semester) => {
@@ -234,96 +235,125 @@
             }
         }
 
-        function uploadFile(name) {
-            Swal.fire({
-                title: 'Uploading the file',
-                text: `Are you sure you want to upload ${name}`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, Upload it',
-                cancelButtonText: 'No, Cancel'
-            }).then((result) => {
-                if (result.value) {
-                    let xhr = new XMLHttpRequest();
-                    xhr.open("POST", "/upload");
-                    xhr.upload.addEventListener("progress", ({
-                        loaded,
-                        total
-                    }) => {
-                        let fileLoaded = Math.floor((loaded / total) * 100);
-                        let fileTotal = Math.floor(total / 1000);
-                        let fileSize;
-                        (fileTotal < 1024) ? fileSize = fileTotal + " KB": fileSize = (loaded / (1024 *
-                            1024)).toFixed(
-                            2) + " MB";
-                        let progressHTML = `<li class="row">
-                          <i class="fas fa-file-alt"></i>
-                          <div class="content">
-                            <div class="details">
-                              <span class="name">${name} • Uploading</span>
-                              <span class="percent">${fileLoaded}%</span>
-                            </div>
-                            <div class="progress-bar">
-                              <div class="progress" style="width: ${fileLoaded}%"></div>
-                            </div>
-                          </div>
-                        </li>`;
-                        uploadedArea.classList.add("onprogress");
-                        progressArea.innerHTML = progressHTML;
-                        if (loaded == total) {
-                            progressArea.innerHTML = "";
-                            let uploadedHTML = `<li class="row">
-                            <div class="content upload">
-                              <i class="fas fa-file-alt"></i>
-                              <div class="details">
-                                <span class="name">${name} • Uploaded</span>
-                                <span class="size">${fileSize}</span>
-                              </div>
-                            </div>
-                            <i class="fas fa-check"></i>
-                          </li>`;
-                            uploadedArea.classList.remove("onprogress");
-                            uploadedArea.insertAdjacentHTML("afterbegin", uploadedHTML);
-                        }
-                    });
+        async function uploadFile(name) {
 
-                    let data = new FormData(form);
-                    xhr.send(data);
-                    xhr.onreadystatechange = () => { // Call a function when the state changes.
-                        if (xhr.readyState === XMLHttpRequest.DONE) {
-                            if (xhr.status == 200) {
-                                console.log(JSON.parse(xhr.response).files);
-                                let uploadedHTML = "";
-                                JSON.parse(xhr.response).files.forEach((semester) => {
-                                    uploadedHTML += `<h3>${semester.folder}</h3>`;
-                                    if (semester.files.length > 0) {
-                                        semester.files.forEach((fila) => {
-                                            uploadedHTML +=
-                                                `<li class="row">
-                                                  <div class="content upload">
-                                                              <i class="fas fa-file-alt"></i>
-                                                     <div class="details">
-                                                        <span class="name">${fila.name} Completed</span>
-                                                        <span class="size">${fila.size}</span>
-                                                    </div>
-                                                 </div>
-                                                    <i class="fas fa-check"></i>
-                                                </li>`;
-                                        })
-                                    }
-                                })
-                                uploadedArea.innerHTML = uploadedHTML;
-                            } else {
-                                console.log(xhr.response)
+            const {
+                value: semester
+            } = await Swal.fire({
+                title: 'Select field validation',
+                input: 'select',
+                inputOptions: {
+                    JANUARY: 'JANUARY SEMESTER',
+                    MAY: 'MAY SEMESTER',
+                    AUGUST: 'AUGUST SEMESTER'
+                },
+                inputPlaceholder: 'Select a semester',
+                showCancelButton: true,
+                inputValidator: (value) => {
+                    return new Promise((resolve) => {
+                        if (value) {
+                            resolve()
+                        } else {
+                            resolve('You need to select a semester')
+                        }
+                    })
+                }
+            })
+
+            if (semester) {
+                document.querySelector('#semester').value = semester;
+                Swal.fire({
+                    title: 'Uploading the file',
+                    text: `Are you sure you want to upload ${name}`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Upload it',
+                    cancelButtonText: 'No, Cancel'
+                }).then((result) => {
+                    if (result.value) {
+                        let xhr = new XMLHttpRequest();
+                        xhr.open("POST", "/upload");
+                        xhr.upload.addEventListener("progress", ({
+                            loaded,
+                            total
+                        }) => {
+                            let fileLoaded = Math.floor((loaded / total) * 100);
+                            let fileTotal = Math.floor(total / 1000);
+                            let fileSize;
+                            (fileTotal < 1024) ? fileSize = fileTotal + " KB": fileSize = (loaded /
+                                (1024 *
+                                    1024)).toFixed(
+                                2) + " MB";
+                            let progressHTML = `<li class="row">
+                              <i class="fas fa-file-alt"></i>
+                              <div class="content">
+                                <div class="details">
+                                  <span class="name">${name} • Uploading</span>
+                                  <span class="percent">${fileLoaded}%</span>
+                                </div>
+                                <div class="progress-bar">
+                                  <div class="progress" style="width: ${fileLoaded}%"></div>
+                                </div>
+                              </div>
+                            </li>`;
+                            uploadedArea.classList.add("onprogress");
+                            progressArea.innerHTML = progressHTML;
+                            if (loaded == total) {
+                                progressArea.innerHTML = "";
+                                let uploadedHTML = `<li class="row">
+                                <div class="content upload">
+                                  <i class="fas fa-file-alt"></i>
+                                  <div class="details">
+                                    <span class="name">${name} • Uploaded</span>
+                                    <span class="size">${fileSize}</span>
+                                  </div>
+                                </div>
+                                <i class="fas fa-check"></i>
+                              </li>`;
+                                uploadedArea.classList.remove("onprogress");
+                                uploadedArea.insertAdjacentHTML("afterbegin", uploadedHTML);
+                            }
+                        });
+
+                        let data = new FormData(form);
+                        xhr.send(data);
+                        xhr.onreadystatechange = () => { // Call a function when the state changes.
+                            if (xhr.readyState === XMLHttpRequest.DONE) {
+                                if (xhr.status == 200) {
+                                    console.log(JSON.parse(xhr.response).files);
+                                    let uploadedHTML = "";
+                                    JSON.parse(xhr.response).files.forEach((semester) => {
+                                        uploadedHTML += `<h3>${semester.folder}</h3>`;
+                                        if (semester.files.length > 0) {
+                                            semester.files.forEach((fila) => {
+                                                uploadedHTML +=
+                                                    `<li class="row">
+                                                      <div class="content upload">
+                                                                  <i class="fas fa-file-alt"></i>
+                                                         <div class="details">
+                                                            <span class="name">${fila.name} Completed</span>
+                                                            <span class="size">${fila.size}</span>
+                                                        </div>
+                                                     </div>
+                                                        <i class="fas fa-check"></i>
+                                                    </li>`;
+                                            })
+                                        }
+                                    })
+                                    uploadedArea.innerHTML = uploadedHTML;
+                                } else {
+                                    console.log(xhr.response)
+                                }
                             }
                         }
-                    }
 
-                } else if (result.dismiss === Swal.DismissReason.cancel) {
-                    // The user clicked the "Cancel" button
-                    // Do nothing
-                }
-            });
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
+                        // The user clicked the "Cancel" button
+                        // Do nothing
+                    }
+                });
+            }
+
         }
     </script>
 

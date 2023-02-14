@@ -33,6 +33,14 @@ app.post("/search", async (req, res, next) => {
   let { courses, campus_choice } = req.body;
   courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
   let mySheets = await getSheets();
+  (async () => {
+    console.log(
+      await getAllSheetsData(
+        courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
+        parseInt(campus_choice)
+      )
+    );
+  })();
   res.render("index", {
     docTitle: "My - Exam Timetable",
     path: "/",
@@ -317,6 +325,9 @@ app.get("/admin", (req, res, next) => {
     var files = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
     obj.folder = folder;
     obj.files = files.map((fila) => {
+      console.log(
+        fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`).size
+      );
       return {
         name: fila,
         size:
@@ -324,12 +335,15 @@ app.get("/admin", (req, res, next) => {
             .size < 1024
             ? fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
                 .size + " KB"
-            : fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
-                .size /
-                (1024 * 1024).toFixed(2) +
-              " MB",
+            : (
+                fs.statSync(
+                  `data/${new Date().getFullYear()}/${folder}/${fila}`
+                ).size /
+                (1024 * 1024)
+              ).toFixed(2) + " MB",
       };
     });
+
     objArray.push(obj);
   });
   res.render("admin/uploads", { files: objArray });
@@ -340,17 +354,22 @@ app.get("/admin/dashboard", (req, res, next) => {
   res.render("admin/dashboard");
 });
 
-var storage = multer.diskStorage({
-  destination: `data/${new Date().getFullYear()}/${Semester.toUpperCase()}-SEMESTER`,
-  filename: function (req, file, callback) {
-    callback(null, file.originalname);
-  },
-});
-
-var upload = multer({ storage: storage }).single("file");
-
 app.post("/upload", async (req, res) => {
+  // console.log(req);
+  var storage = multer.diskStorage({
+    destination: `data/${new Date().getFullYear()}/${
+      req.body.semester || Semester
+    }-SEMESTER`,
+
+    filename: function (req, file, callback) {
+      callback(null, file.originalname);
+    },
+  });
+
+  var upload = multer({ storage: storage }).single("file");
+
   upload(req, res, function (err) {
+    console.log(req.body);
     var folders = fs.readdirSync("data/2022");
     var objArray = [];
     folders.forEach((folder) => {
@@ -366,11 +385,12 @@ app.post("/upload", async (req, res) => {
               ? fs.statSync(
                   `data/${new Date().getFullYear()}/${folder}/${fila}`
                 ).size + " KB"
-              : fs.statSync(
-                  `data/${new Date().getFullYear()}/${folder}/${fila}`
-                ).size /
-                  (1024 * 1024).toFixed(2) +
-                " MB",
+              : (
+                  fs.statSync(
+                    `data/${new Date().getFullYear()}/${folder}/${fila}`
+                  ).size /
+                  (1024 * 1024)
+                ).toFixed(2) + " MB",
         };
       });
       objArray.push(obj);
@@ -378,7 +398,6 @@ app.post("/upload", async (req, res) => {
     if (err) {
       res.status(400).send({ error: err, files: objArray });
     } else {
-      var FileName = req.file.filename;
       res.status(200).send({ message: "success", files: objArray });
     }
   });

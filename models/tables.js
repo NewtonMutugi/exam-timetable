@@ -1,6 +1,6 @@
 const xlsxFile = require("read-excel-file/node");
 let Semester = "August";
-let fileName = `./data/${new Date().getFullYear()}/${Semester.toUpperCase()}-SEMESTER/Data_3.xlsx`;
+let fileName = `./data/Data_3.xlsx`;
 
 async function getSheets() {
   let sheets = [];
@@ -26,6 +26,7 @@ function output(sheetNumber) {
     });
   });
 }
+
 function getInterval(objectList, V, i) {
   let newParams = objectList;
 
@@ -76,7 +77,7 @@ async function getCourses(params, sheetNumber) {
 
   let time = [];
   variables.forEach((timeElement, timeIndex) => {
-    if (timeElement.find((str) => /00AM/.test(str))) {
+    if (timeElement.find((str) => /:0/.test(str))) {
       time.push(timeIndex);
     }
   });
@@ -92,6 +93,8 @@ async function getCourses(params, sheetNumber) {
       return { eleme, index };
     })
     .filter((ele) => ele.eleme !== null);
+
+    console.log(secondWeekDays)
 
   let foundItem = [];
   let j = 0;
@@ -119,13 +122,14 @@ async function getCourses(params, sheetNumber) {
               arr.includes("PM")
             )
         );
+        console.log(index)
 
         elements.forEach((foundElement) => {
           foundItem.push({
             course_code: foundElement,
             // row: index,
             day:
-              index >= time[1] + 2
+              index >= time[1]
                 ? getInterval(
                     secondWeekDays,
                     variables[index].indexOf(foundElement),
@@ -137,7 +141,7 @@ async function getCourses(params, sheetNumber) {
                     firstWeekDays.length - 1
                   ).eleme,
             time:
-              index >= time[1] + 2
+              index >= time[1]
                 ? variables[time[1]][variables[index].indexOf(foundElement)]
                 : variables[time[0]][variables[index].indexOf(foundElement)],
             // column: variables[index].indexOf(foundElement),

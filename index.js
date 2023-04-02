@@ -29,31 +29,21 @@ app.get("/", async (req, res, next) => {
   });
 });
 
-app.post("/search", async (req, res, next) => {
+app.post("/api/search", async (req, res, next) => {
   let { courses, campus_choice } = req.body;
   courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
+
+  let data = await getAllSheetsData(
+    courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
+    parseInt(campus_choice)
+  );
+
+  res.json({ data });
+});
+
+app.post("/api/sheets", async (req, res, next) => {
   let mySheets = await getSheets();
-  (async () => {
-    console.log(
-      await getAllSheetsData(
-        courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
-        parseInt(campus_choice)
-      )
-    );
-  })();
-  res.render("index", {
-    docTitle: "My - Exam Timetable",
-    path: "/",
-    input: courses,
-    campus_choice:
-      mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
-      "ALL CAMPUSES",
-    sheets: mySheets,
-    items_list: await getAllSheetsData(
-      courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
-      parseInt(campus_choice)
-    ),
-  });
+  res.json({ data: mySheets });
 });
 
 app.get("/search", async (req, res, next) => {
@@ -61,6 +51,9 @@ app.get("/search", async (req, res, next) => {
   if (!courses) {
     return res.redirect("/");
   }
+  console.log(
+    await getAllSheetsData(courses.split(/[, ]+/), parseInt(campus_choice))
+  );
   let mySheets = await getSheets();
   res.render("index", {
     docTitle: "My - Exam Timetable",
@@ -72,6 +65,28 @@ app.get("/search", async (req, res, next) => {
     sheets: mySheets,
     items_list: await getAllSheetsData(
       courses.split(/[, ]+/),
+      parseInt(campus_choice)
+    ),
+  });
+});
+
+app.post("/search", async (req, res, next) => {
+  let { courses, campus_choice } = req.body;
+  courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
+  let mySheets = await getSheets();
+  console.log(
+    await getAllSheetsData(courses.split(/[, ]+/), parseInt(campus_choice))
+  );
+  res.render("index", {
+    docTitle: "My - Exam Timetable",
+    path: "/",
+    input: courses,
+    campus_choice:
+      mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
+      "ALL CAMPUSES",
+    sheets: mySheets,
+    items_list: await getAllSheetsData(
+      courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
       parseInt(campus_choice)
     ),
   });
@@ -325,9 +340,9 @@ app.get("/admin", (req, res, next) => {
     var files = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
     obj.folder = folder;
     obj.files = files.map((fila) => {
-      console.log(
-        fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`).size
-      );
+      // console.log(
+      //   fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`).size
+      // );
       return {
         name: fila,
         size:
@@ -369,7 +384,7 @@ app.post("/upload", async (req, res) => {
   var upload = multer({ storage: storage }).single("file");
 
   upload(req, res, function (err) {
-    console.log(req.body);
+    // console.log(req.body);
     var folders = fs.readdirSync("data/2022");
     var objArray = [];
     folders.forEach((folder) => {

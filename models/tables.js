@@ -54,7 +54,7 @@ async function getCourses(params, sheetNumber) {
     variablesWithoutNull.push(nonArr.filter((elem) => elem !== null));
   });
 
-  // console.log(variablesWithoutNull)
+  //
   let MAX_INDEX_NULL = [];
   for (
     let indexesNull = variablesWithoutNull.length - 1;
@@ -94,12 +94,12 @@ async function getCourses(params, sheetNumber) {
     })
     .filter((ele) => ele.eleme !== null);
 
-    console.log(secondWeekDays)
-
   let foundItem = [];
   let j = 0;
   for (let i = 0; i < params.length; i++) {
     let searchString = `${params[i]}`;
+    // console.log(searchString)
+    // console.log(params.length)
 
     variablesWithoutNull.forEach((element, index) => {
       if (
@@ -108,23 +108,22 @@ async function getCourses(params, sheetNumber) {
         )
       ) {
         let elements = [];
-        elements = element.filter(
-          (arr, ind) =>
-            arr.split(/[ ]/).join("").includes(searchString) &&
-            !(
-              ind == 0 ||
-              arr.split(/[ ]/).join("").includes("CHAPEL") ||
-              arr.split(/[ ]/).join("").includes(":") ||
-              ind > MAX_INDEX ||
-              index == time[1] - 1 ||
-              arr.includes("AM") ||
-              index == time[0] - 1 ||
-              arr.includes("PM")
-            )
-        );
-        console.log(index)
+        elements = element.filter((arr, ind) => {
+          const hasTwoOrFewerSlashes = arr.split("/").length <= 2;
+          const meetsComplexCriteria =
+            ind !== 0 &&
+            !arr.includes("CHAPEL") &&
+            !/.+\-.+/.test(arr);
+          const containsSearchString = arr.includes(
+            searchString.replace(/\s/g, "")
+          );
+          return (
+            hasTwoOrFewerSlashes && meetsComplexCriteria && containsSearchString
+          );
+        });
 
         elements.forEach((foundElement) => {
+          console.log(foundElement.includes("CHAPEL"));
           foundItem.push({
             course_code: foundElement,
             // row: index,
@@ -174,6 +173,7 @@ async function getAllSheetsData(params, sheetNumber = 0) {
       let myData = await getCourses(params, index + 1);
       allData.push(myData);
     }
+
     return resolve(
       allData
         .flat()

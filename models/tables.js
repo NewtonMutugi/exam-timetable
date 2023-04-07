@@ -98,8 +98,8 @@ async function getCourses(params, sheetNumber) {
   let j = 0;
   for (let i = 0; i < params.length; i++) {
     let searchString = `${params[i]}`;
-    // console.log(searchString)
-    // console.log(params.length)
+    //
+    //
 
     variablesWithoutNull.forEach((element, index) => {
       if (
@@ -109,11 +109,10 @@ async function getCourses(params, sheetNumber) {
       ) {
         let elements = [];
         elements = element.filter((arr, ind) => {
+          arr = arr.split(" ").join("");
           const hasTwoOrFewerSlashes = arr.split("/").length <= 2;
           const meetsComplexCriteria =
-            ind !== 0 &&
-            !arr.includes("CHAPEL") &&
-            !/.+\-.+/.test(arr);
+            ind !== 0 && !arr.includes("CHAPEL") && !/.+\-.+/.test(arr);
           const containsSearchString = arr.includes(
             searchString.replace(/\s/g, "")
           );
@@ -123,7 +122,6 @@ async function getCourses(params, sheetNumber) {
         });
 
         elements.forEach((foundElement) => {
-          console.log(foundElement.includes("CHAPEL"));
           foundItem.push({
             course_code: foundElement,
             // row: index,

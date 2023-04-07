@@ -27,18 +27,18 @@
             <div class="input-group mb-4">
                 <input type="text" class="mr-2 form-control rounded" id="courses" name="courses" value="<%= input %>"
                     placeholder="Format ACS102,ACS113,..." required />
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-success ml-sm-2 mb-2 px-3" data-mdb-toggle="modal"
-                        href="#exampleModalCenter">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                            class="bi bi-share" viewBox="0 0 16 16">
-                            <path
-                                d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z">
-                            </path>
-                        </svg>
-                        Share Table
-                    </button>
-                </span>
+                    <span class="input-group-btn">
+                        <button type="button" class="btn ml-sm-2 mb-2 px-3 <%= items_list.length > 0 ? "btn-success" : "btn-secondary disabled" %>" data-mdb-toggle="modal"
+                            href="#exampleModalCenter">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="bi bi-share" viewBox="0 0 16 16">
+                                <path
+                                    d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z">
+                                </path>
+                            </svg>
+                            Share Table
+                        </button>
+                    </span>
 
             </div>
             <span class="btn btn-secondary ml-sm-1 mb-2 px-3 disabled"><%= items_list.length %> items</span>
@@ -248,7 +248,6 @@
 
         function inputChange(e) {
             e.target.value = e.target.value.toUpperCase().trim();
-
         }
         var errorMap = ["Invalid number", "Invalid country code", "Too short", "Too long", "Invalid number"];
 

@@ -1,6 +1,6 @@
 const { getSheets, getAllSheetsData, Semester } = require("./models/tables");
 const http = require("http");
-const multer = require("multer");
+// const multer = require("multer");
 const bodyParser = require("body-parser");
 const fs = require("fs");
 
@@ -15,7 +15,7 @@ app.set("view engine", "ejs");
 app.set("views", "views");
 
 app.use(express.static(path.join(__dirname, "public")));
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.get("/", async (req, res, next) => {
@@ -29,19 +29,24 @@ app.get("/", async (req, res, next) => {
   });
 });
 
-app.post("/api/search", async (req, res, next) => {
-  let { courses, campus_choice } = req.body;
-  courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
+app.get("/api/courses", async (req, res, next) => {
+  let { courses, campus_choice } = req.query;
+  if (!courses) {
+    return res.status(400).json({"error": "missing courses"});
+  }
+  
+  courses = courses.replace(/^,|,$|,(?=,)/g, "").trim(); 
+  courses = courses.replaceAll(" ","");
 
   let data = await getAllSheetsData(
     courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
     parseInt(campus_choice)
   );
-
-  res.json({ data });
+  res.json({ data: data });
+  
 });
 
-app.post("/api/sheets", async (req, res, next) => {
+app.get("/api/sheets", async (req, res, next) => {
   let mySheets = await getSheets();
   res.json({ data: mySheets });
 });
@@ -51,10 +56,8 @@ app.get("/search", async (req, res, next) => {
   if (!courses) {
     return res.redirect("/");
   }
-  console.log(
-    await getAllSheetsData(courses.split(/[, ]+/), parseInt(campus_choice))
-  );
   let mySheets = await getSheets();
+    courses = courses.replaceAll(" ","");
   res.render("index", {
     docTitle: "My - Exam Timetable",
     path: "/",
@@ -73,10 +76,8 @@ app.get("/search", async (req, res, next) => {
 app.post("/search", async (req, res, next) => {
   let { courses, campus_choice } = req.body;
   courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
+  courses = courses.replaceAll(" ","");
   let mySheets = await getSheets();
-  console.log(
-    await getAllSheetsData(courses.split(/[, ]+/), parseInt(campus_choice))
-  );
   res.render("index", {
     docTitle: "My - Exam Timetable",
     path: "/",
@@ -95,7 +96,6 @@ app.post("/search", async (req, res, next) => {
 function sendMessage(courses, to, cb) {
   let table_body = ``;
   let length = 0;
-  // console.log(JSON.parse(courses))
   JSON.parse(courses).forEach((item) => {
     let temp = `<tr>
     <th scope="row" style="line-height: 24px; font-size: 16px; margin: 0;" align="left">${item.course_code}</th>
@@ -364,59 +364,59 @@ app.get("/admin", (req, res, next) => {
   res.render("admin/uploads", { files: objArray });
 });
 
-app.get("/admin/dashboard", (req, res, next) => {
-  // const { courses, to } = req.body;
-  res.render("admin/dashboard");
-});
+// app.get("/admin/dashboard", (req, res, next) => {
+//   // const { courses, to } = req.body;
+//   res.render("admin/dashboard");
+// });
 
-app.post("/upload", async (req, res) => {
-  // console.log(req);
-  var storage = multer.diskStorage({
-    destination: `data/${new Date().getFullYear()}/${
-      req.body.semester || Semester
-    }-SEMESTER`,
+// app.post("/upload", async (req, res) => {
+//   // console.log(req);
+//   var storage = multer.diskStorage({
+//     destination: `data/${new Date().getFullYear()}/${
+//       req.body.semester || Semester
+//     }-SEMESTER`,
 
-    filename: function (req, file, callback) {
-      callback(null, file.originalname);
-    },
-  });
+//     filename: function (req, file, callback) {
+//       callback(null, file.originalname);
+//     },
+//   });
 
-  var upload = multer({ storage: storage }).single("file");
+//   var upload = multer({ storage: storage }).single("file");
 
-  upload(req, res, function (err) {
-    // console.log(req.body);
-    var folders = fs.readdirSync("data/2022");
-    var objArray = [];
-    folders.forEach((folder) => {
-      var obj = {};
-      var files = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
-      obj.folder = folder;
-      obj.files = files.map((fila) => {
-        return {
-          name: fila,
-          size:
-            fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
-              .size < 1024
-              ? fs.statSync(
-                  `data/${new Date().getFullYear()}/${folder}/${fila}`
-                ).size + " KB"
-              : (
-                  fs.statSync(
-                    `data/${new Date().getFullYear()}/${folder}/${fila}`
-                  ).size /
-                  (1024 * 1024)
-                ).toFixed(2) + " MB",
-        };
-      });
-      objArray.push(obj);
-    });
-    if (err) {
-      res.status(400).send({ error: err, files: objArray });
-    } else {
-      res.status(200).send({ message: "success", files: objArray });
-    }
-  });
-});
+//   upload(req, res, function (err) {
+//     // console.log(req.body);
+//     var folders = fs.readdirSync("data/2022");
+//     var objArray = [];
+//     folders.forEach((folder) => {
+//       var obj = {};
+//       var files = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
+//       obj.folder = folder;
+//       obj.files = files.map((fila) => {
+//         return {
+//           name: fila,
+//           size:
+//             fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
+//               .size < 1024
+//               ? fs.statSync(
+//                   `data/${new Date().getFullYear()}/${folder}/${fila}`
+//                 ).size + " KB"
+//               : (
+//                   fs.statSync(
+//                     `data/${new Date().getFullYear()}/${folder}/${fila}`
+//                   ).size /
+//                   (1024 * 1024)
+//                 ).toFixed(2) + " MB",
+//         };
+//       });
+//       objArray.push(obj);
+//     });
+//     if (err) {
+//       res.status(400).send({ error: err, files: objArray });
+//     } else {
+//       res.status(200).send({ message: "success", files: objArray });
+//     }
+//   });
+// });
 
 app.use((req, res, next) => {
   res

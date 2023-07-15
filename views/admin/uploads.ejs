@@ -182,7 +182,7 @@
 
         let uploadedHTML = "";
         JSON.parse('<%- JSON.stringify(files) %>').forEach((semester) => {
-            uploadedHTML += `<h3>${semester.folder}</h3>`;
+            uploadedHTML += `<h3>${semester.folder} (${semester.year})</h3>`;
             if (semester.files.length > 0) {
                 semester.files.forEach((fila) => {
                     uploadedHTML +=

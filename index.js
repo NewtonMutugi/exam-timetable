@@ -341,7 +341,11 @@ app.post("/send/email", (req, res, next) => {
 });
 
 app.get("/admin", (req, res, next) => {
-  const targetYears = ["2022"];
+  const targetYears = fs.readdirSync("data").filter((year) => {
+    const yearPath = `data/${year}`;
+    return fs.lstatSync(yearPath).isDirectory();
+  });
+
   const objArray = [];
 
   targetYears.forEach((year) => {
@@ -351,6 +355,7 @@ app.get("/admin", (req, res, next) => {
       const obj = {};
       const files = fs.readdirSync(`data/${year}/${folder}`);
 
+      obj.year = year
       obj.folder = folder;
       obj.files = files.map((file) => {
         const filePath = `data/${year}/${folder}/${file}`;
@@ -359,7 +364,6 @@ app.get("/admin", (req, res, next) => {
           fileStats.size < 1024
             ? fileStats.size + " KB"
             : (fileStats.size / (1024 * 1024)).toFixed(2) + " MB";
-
         return {
           name: file,
           size: fileSize,
@@ -369,8 +373,7 @@ app.get("/admin", (req, res, next) => {
       objArray.push(obj);
     });
   });
-
-  console.log(objArray);
+  objArray.reverse();
 
   res.render("admin/uploads", { files: objArray });
 });
@@ -395,13 +398,14 @@ app.post("/upload", async (req, res) => {
   var upload = multer({ storage: storage }).single("file");
 
   upload(req, res, function (err) {
-    // console.log(req.body);
     var folders = fs.readdirSync("data/2022");
     var objArray = [];
     folders.forEach((folder) => {
       var obj = {};
-      var semester_folders = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
-      if(!semester_folders){
+      var semester_folders = fs.readdirSync(
+        `data/${new Date().getFullYear()}/` + folder
+      );
+      if (!semester_folders) {
         return;
       }
       obj.folder = folder;

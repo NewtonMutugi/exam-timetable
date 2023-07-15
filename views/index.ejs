@@ -1,7 +1,6 @@
 <%- include('includes/head.ejs') %>
 
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
 <!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 <!-- Google Fonts -->
@@ -20,374 +19,394 @@
 </head>
 
 <body>
-    <div class="container" style="margin-top: 25px">
-        <h3>My Exam TimeTable</h3>
-        <p class="my-3s">Enter you courses below and click submit to get a simplified Timetable</p>
-        <form id="search" method="post" action="/search">
-            <div class="input-group mb-4">
-                <input type="text" class="mr-2 form-control rounded" id="courses" name="courses" value="<%= input %>"
-                    placeholder="Format ACS102,ACS113,..." required />
-                    <span class="input-group-btn">
-                        <button type="button" class="btn ml-sm-2 mb-2 px-3 <%= items_list.length > 0 ? "btn-success" : "btn-secondary disabled" %>" data-mdb-toggle="modal"
-                            href="#exampleModalCenter">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                class="bi bi-share" viewBox="0 0 16 16">
-                                <path
-                                    d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z">
-                                </path>
-                            </svg>
-                            Share Table
-                        </button>
-                    </span>
+  <div class="container" style="margin-top: 25px">
+    <h3>My Exam TimeTable</h3>
+    <p class="my-3s">Enter you courses below and click submit to get a simplified Timetable (clashing units are highlighted)</p>
+    <form id="search" method="post" action="/search">
+      <div class="input-group mb-4">
+        <input type="text" class="mr-2 form-control rounded" id="courses" name="courses" value="<%= input %>" placeholder="Format ACS102,ACS113,..." required />
+        <span class="input-group-btn">
+          <button type="button" class="btn ml-sm-2 mb-2 px-3 <%= items_list.length > 0 ? "btn-success" : "btn-secondary disabled" %>" data-mdb-toggle="modal" href="#exampleModalCenter">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
+              <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z">
+              </path>
+            </svg>
+            Share Table
+          </button>
+        </span>
 
-            </div>
-            <span class="btn btn-secondary ml-sm-1 mb-2 px-3 disabled"><%= items_list.length %> items</span>
-            <button class="btn btn-primary ml-1 mb-2 px-4" type="submit" id="button-addon2">Submit</button>
-            <span class="dropdown float-right">
-                <a class="btn btn-primary dropdown-toggle main-text text-white" role="button" id="dropdownMenuLink"
-                    data-mdb-toggle="dropdown" aria-expanded="false"><%=campus_choice%></a>
+      </div>
+      <span class="btn btn-secondary ml-sm-1 mb-2 px-3 disabled"><%= items_list.length %> items</span>
+      <button class="btn btn-primary ml-1 mb-2 px-4" type="submit" id="button-addon2">Submit</button>
+      <span class="dropdown float-right">
+        <a class="btn btn-primary dropdown-toggle main-text text-white" role="button" id="dropdownMenuLink" data-mdb-toggle="dropdown" aria-expanded="false"><%=campus_choice%></a>
 
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                    <li><button class="dropdown-item">ALL CAMPUSES</button></li>
-                    <% sheets.forEach((sheet)=>{ %>
-                    <li><button class="dropdown-item"><%= sheet %></button></li>
-                    <% }) %>
-                </ul>
-            </span>
-            <input type="hidden" name="campus_choice" value="" id="campuses">
-        </form>
-        <% if (items_list.length <= 0){ %>
-        <div class="alert alert-warning" role="alert">Enter course codes seperate by , and submit</div>
-        <% }else{ %>
-        <div class="table-responsive">
-            <table class="table table-hover form-tablp">
-                <thead class="thead-dark">
-                    <tr>
-                        <th scope="col">NAME</th>
-                        <th scope="col">DATE</th>
-                        <th scope="col">TIME</th>
-                        <th scope="col">VENUE</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% items_list.forEach((item)=>{ %>
-                    <tr>
-                        <th scope="row"><%= item.course_code %></th>
-                        <td><%= item.day %></td>
-                        <td><%= item.time %></th>
-                        <th><%= item.room %></th>
-                    </tr>
-                    <% })%>
-                </tbody>
-            </table>
-        </div>
-        <div class="alert alert-warning my-3" role="alert">If you want better result be a little more specific to your
-            class i.e INS111A</div>
-        <% } %>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+          <li><button class="dropdown-item">ALL CAMPUSES</button></li>
+          <% sheets.forEach((sheet)=>{ %>
+          <li><button class="dropdown-item"><%= sheet %></button></li>
+          <% }) %>
+        </ul>
+      </span>
+      <input type="hidden" name="campus_choice" value="" id="campuses">
+    </form>
+  <% if (items_list.length <= 0){ %>
+  <div class="alert alert-warning" role="alert">Enter course codes separate by ',' and submit</div>
+  <% } else { %>
+  <div class="table-responsive">
+    <table class="table table-hover form-tablp">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">NAME</th>
+          <th scope="col">DATE</th>
+          <th scope="col">TIME</th>
+          <th scope="col">VENUE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% 
+        const clashMap = new Map();
 
-    </div>
+        items_list.forEach((item) => {
+          const key = item.day + item.time;
+          if (clashMap.has(key)) {
+            clashMap.get(key).push(item.course_code);
+          } else {
+            clashMap.set(key, [item.course_code]);
+          }
+        });
+
+        clashMap.forEach((clashingUnits) => {
+          if (clashingUnits.length > 1) {
+            const randomColor = getRandomColor();
+            clashingUnits.forEach((unit) => {
+              const item = items_list.find((item) => item.course_code === unit);
+              %>
+        <tr>
+          <td style="background-color: <%= randomColor %>; color: white;"><%= item.course_code %></td>
+          <td><%= item.day %></td>
+          <td><%= item.time %></td>
+          <td><%= item.room %></td>
+        </tr>
+        <% });
+          } else {
+            const unit = clashingUnits[0];
+            const item = items_list.find((item) => item.course_code === unit);
+            %>
+        <tr>
+          <td><%= item.course_code %></td>
+          <td><%= item.day %></td>
+          <td><%= item.time %></td>
+          <td><%= item.room %></td>
+        </tr>
+        <% }
+        });
+        %>
+      </tbody>
+    </table>
+  </div>
+  <div class="alert alert-warning my-3" role="alert">If you want better results, be a little more specific to your class, i.e., INS111A</div>
+  <% } %>
+
+  <% function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+} %>
 
     <!-- First Modal -->
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
-        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">My Timetable <%= items_list.length %> items</h5>
-                    <button type="button" class="close" data-mdb-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">My Timetable <%= items_list.length %> items</h5>
+            <button type="button" class="close" data-mdb-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
 
-                <div class="modal-body">
-                    <% if (items_list.length <= 0){ %>
-                    <div class="alert alert-warning" role="alert">Enter course codes seperate by , and submit</div>
-                    <% }else{ %>
-                    <div class="table-responsive text-wrap">
-                        <table class="table table-hover">
+          <div class="modal-body">
+            <% if (items_list.length <= 0){ %>
+            <div class="alert alert-warning" role="alert">Enter course codes seperate by , and submit</div>
+            <% }else{ %>
+            <div class="table-responsive text-wrap">
+              <table class="table table-hover">
 
-                            <thead>
-                                <tr>
-                                    <th class="th-lg">NAME</th>
-                                    <th class="th-lg">DATE</th>
-                                    <th class="th-lg">TIME</th>
-                                    <th class="th-lg">VENUE</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% items_list.forEach((item)=>{ %>
-                                <tr>
-                                    <th scope="row"><%= item.course_code %></th>
-                                    <td><%= item.day %></td>
-                                    <td><%= item.time %></th>
-                                    <th><%= item.room %></th>
-                                </tr>
-                                <% })%>
-                            </tbody>
-                        </table>
-                    </div>
-                    <% } %>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" data-mdb-target="#exampleModalToggle22"
-                        data-mdb-toggle="modal" data-mdb-dismiss="modal">Continue to Share</button>
-                </div>
+                <thead>
+                  <tr>
+                    <th class="th-lg">NAME</th>
+                    <th class="th-lg">DATE</th>
+                    <th class="th-lg">TIME</th>
+                    <th class="th-lg">VENUE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% items_list.forEach((item)=>{ %>
+                  <tr>
+                    <th scope="row"><%= item.course_code %></th>
+                    <td><%= item.day %></td>
+                    <td><%= item.time %></th>
+                    <th><%= item.room %></th>
+                  </tr>
+                  <% })%>
+                </tbody>
+              </table>
             </div>
+            <% } %>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-mdb-target="#exampleModalToggle22" data-mdb-toggle="modal" data-mdb-dismiss="modal">Continue to Share</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Second modal dialog -->
-    <div class="modal fade" id="exampleModalToggle22" aria-hidden="true" aria-labelledby="exampleModalToggleLabel22"
-        tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalToggleLabel22">Share Your Timetable</h5>
-                    <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body d-flex align-items-center justify-content-center">
-                    <!-- Download  -->
-                    <a class="btn btn-primary p-2 m-2 bg-warning shadow rounded-2" href="#!" id="generatePDF"
-                        role="button"><i class="fa-solid fa-download"></i> Save</a>
+    <div class="modal fade" id="exampleModalToggle22" aria-hidden="true" aria-labelledby="exampleModalToggleLabel22" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalToggleLabel22">Share Your Timetable</h5>
+            <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body d-flex align-items-center justify-content-center">
+            <!-- Download  -->
+            <a class="btn btn-primary p-2 m-2 bg-warning shadow rounded-2" href="#!" id="generatePDF" role="button"><i class="fa-solid fa-download"></i> Save</a>
 
-                    <!-- Email  -->
-                    <a class="btn btn-primary p-2 m-2 bg-warning shadow rounded-2" href="#!" role="button"
-                        data-mdb-toggle="modal" data-mdb-target="#email_modal"><i class="fab fa-google"></i> Email</a>
-                    <!--Whatsapp-->
-                    <a class="btn btn-primary p-2 m-2 bg-success shadow rounded-2" href="#!" role="button"
-                        data-mdb-toggle="modal" data-mdb-target="#whatsapp_modal"><i class="fab fa-whatsapp"></i>
-                        Whatsapp</a>
-                    <!-- Print  -->
-                    <a class="btn btn-primary p-2 m-2 bg-info shadow rounded-2" href="#!" id="printPDF" role="button"><i
-                            class="fa-solid fa-print"></i> Print</a>
-                </div>
-                <div class="modal-footer">
-                </div>
-            </div>
+            <!-- Email  -->
+            <a class="btn btn-primary p-2 m-2 bg-warning shadow rounded-2" href="#!" role="button" data-mdb-toggle="modal" data-mdb-target="#email_modal"><i class="fab fa-google"></i> Email</a>
+            <!--Whatsapp-->
+            <a class="btn btn-primary p-2 m-2 bg-success shadow rounded-2" href="#!" role="button" data-mdb-toggle="modal" data-mdb-target="#whatsapp_modal"><i class="fab fa-whatsapp"></i>
+              Whatsapp</a>
+            <!-- Print  -->
+            <a class="btn btn-primary p-2 m-2 bg-info shadow rounded-2" href="#!" id="printPDF" role="button"><i class="fa-solid fa-print"></i> Print</a>
+          </div>
+          <div class="modal-footer">
+          </div>
         </div>
+      </div>
     </div>
 
     <!--User email modal-->
     <div class="modal fade" id="email_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">New message</h5>
-                    <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form class="email-form" id="sendMail" method="post">
-                        <div class="mb-3">
-                            <label for="recipient-name" class="col-form-label">Recipient:</label>
-                            <input type="text" class="form-control" id="recipient-name" name="recipient-name" />
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+            <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form class="email-form" id="sendMail" method="post">
+              <div class="mb-3">
+                <label for="recipient-name" class="col-form-label">Recipient:</label>
+                <input type="text" class="form-control" id="recipient-name" name="recipient-name" />
 
-                        </div>
+              </div>
 
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Send Email</button>
-                    </form>
-                </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Send Email</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!--Whatsapp modal-->
+  <div class="modal fade" id="whatsapp_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+          <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="whatsapp_mail" method="post">
+            <div class="mb-3">
+              <label for="recipient-name" class="col-form-label">Recipient:</label>
+              <input type="tel" class="form-control" id="recipient-number" />
             </div>
-        </div>
-    </div>
-    </div>
-
-
-    <!--Whatsapp modal-->
-    <div class="modal fade" id="whatsapp_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">New message</h5>
-                    <button type="button" class="btn-close" data-mdb-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="whatsapp_mail" method="post">
-                        <div class="mb-3">
-                            <label for="recipient-name" class="col-form-label">Recipient:</label>
-                            <input type="tel" class="form-control" id="recipient-number" />
-                        </div>
-                        <div class="mb-3">
-                            <label for="message-text" class="col-form-label">Message:</label>
-                            <textarea class="form-control whatsapp-textarea" rows="5" id="message-text"
-                                value="<%= input %>" readonly><%= input %></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary send-whatsapp">Send
-                        message</button>
-                </div>
+            <div class="mb-3">
+              <label for="message-text" class="col-form-label">Message:</label>
+              <textarea class="form-control whatsapp-textarea" rows="5" id="message-text" value="<%= input %>" readonly><%= input %></textarea>
             </div>
+          </form>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-mdb-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary send-whatsapp">Send
+            message</button>
+        </div>
+      </div>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        let list = '<%- JSON.stringify(items_list) %>';
-        let form = document.querySelector('#sendMail');
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    let list = '<%- JSON.stringify(items_list) %>';
+    let form = document.querySelector('#sendMail');
 
-        function getIp(cb) {
-            $.get("https://ipinfo.io", function (response) {
-                cb(response.country);
-            }, "jsonp");
+    function getIp(cb) {
+      $.get("https://ipinfo.io", function(response) {
+        cb(response.country);
+      }, "jsonp");
+    }
+
+
+    const phoneInputField = document.querySelector("#recipient-number");
+    const phoneInput = window.intlTelInput(phoneInputField, {
+      preferredCountries: ["ke", "us", "in", "de"],
+      initialCountry: "auto",
+      geoIpLookup: getIp,
+      utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+    });
+
+    function inputChange(e) {
+      e.target.value = e.target.value.toUpperCase().trim();
+    }
+    var errorMap = ["Invalid number", "Invalid country code", "Too short", "Too long", "Invalid number"];
+
+    document.querySelector('#courses').addEventListener("input", inputChange);
+    let link =
+      `https://www.timetable.kimworks.buzz/search/?courses=${document.querySelector('#message-text').value}%26campus_choice=1`
+    document.querySelector('.whatsapp-textarea').textContent =
+      `https://api.whatsapp.com/send/?phone=${phoneInput.getNumber()}&text=${link}&type=phone_number&app_absent=0`
+    document.querySelector('.send-whatsapp').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!phoneInput.isValidNumber()) {
+        var errorCode = phoneInput.getValidationError();
+        Swal.fire({
+          icon: 'error',
+          title: errorMap[errorCode],
+          text: `Incorrect Phonenumber ${phoneInput.getNumber()}`,
+        })
+      } else {
+        window.open(
+          `https://api.whatsapp.com/send/?phone=${phoneInput.getNumber()}&text=${link}&type=phone_number&app_absent=0`,
+          '_blank')
+      }
+
+    })
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      fetch('/send/email', {
+        method: 'POST',
+
+        body: JSON.stringify({
+          courses: list,
+          to: document.querySelector("#recipient-name").value
+        }),
+        headers: {
+          'Content-Type': 'application/json'
         }
-
-
-        const phoneInputField = document.querySelector("#recipient-number");
-        const phoneInput = window.intlTelInput(phoneInputField, {
-            preferredCountries: ["ke", "us", "in", "de"],
-            initialCountry: "auto",
-            geoIpLookup: getIp,
-            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
-        });
-
-        function inputChange(e) {
-            e.target.value = e.target.value.toUpperCase().trim();
+      }).then(function(response) {
+        return response.json();
+      }).then(function(data) {
+        data = JSON.parse(data)
+        if (data.message && data.message === "OK") {
+          $("#email_modal").modal('toggle')
+          Swal.fire({
+            icon: 'success',
+            title: 'Email Timetable',
+            text: `Your message was successfully sent to ${document.querySelector("#recipient-name").value}`,
+          })
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Something went wrong!',
+          })
         }
-        var errorMap = ["Invalid number", "Invalid country code", "Too short", "Too long", "Invalid number"];
+        // Success
+      });
+    });
+    let sheets = `<%= sheets %>`.split(',')
+    document.querySelectorAll('.dropdown-item').forEach((btn, index) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log(index)
+        document.querySelector('#campuses').value = index;
+        if (index == 0) {
+          document.querySelector('.main-text').textContent = "ALL CAMPUSES";
+        } else {
+          document.querySelector('.main-text').textContent = sheets[index - 1];
+        }
+      })
+    })
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    let mm = today.getMonth() + 1;
+    let dd = today.getDate();
 
-        document.querySelector('#courses').addEventListener("input", inputChange);
-        let link =
-            `https://www.timetable.kimworks.buzz/search/?courses=${document.querySelector('#message-text').value}%26campus_choice=1`
-        document.querySelector('.whatsapp-textarea').textContent =
-            `https://api.whatsapp.com/send/?phone=${phoneInput.getNumber()}&text=${link}&type=phone_number&app_absent=0`
-        document.querySelector('.send-whatsapp').addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!phoneInput.isValidNumber()) {
-                var errorCode = phoneInput.getValidationError();
-                Swal.fire({
-                    icon: 'error',
-                    title: errorMap[errorCode],
-                    text: `Incorrect Phonenumber ${phoneInput.getNumber()}`,
-                })
-            } else {
-                window.open(
-                    `https://api.whatsapp.com/send/?phone=${phoneInput.getNumber()}&text=${link}&type=phone_number&app_absent=0`,
-                    '_blank')
-            }
+    if (dd < 10) dd = '0' + dd;
+    if (mm < 10) mm = '0' + mm;
 
-        })
+    const formattedToday = dd + '-' + mm + '-' + yyyy;
+    var doc = new jsPDF('p', 'pt', 'letter');
+    var htmlstring = '';
+    var tempVarToCheckPageHeight = 0;
+    var pageHeight = 0;
+    pageHeight = doc.internal.pageSize.height;
+    specialElementHandlers = {
+      // element with id of "bypass" - jQuery style selector  
+      '#bypassme': function(element, renderer) {
+        // true = "handled elsewhere, bypass text extraction"  
+        return true
+      }
+    };
+    margins = {
+      top: 150,
+      bottom: 60,
+      left: 40,
+      right: 40,
+      width: 600
+    };
+    var y = 20;
+    doc.setLineWidth(2);
+    doc.text(200, y = y + 30, "My Timetable");
+    doc.autoTable({
+      html: '.form-tablp',
+      startY: 70,
+      theme: 'grid'
+    })
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            fetch('/send/email', {
-                method: 'POST',
-
-                body: JSON.stringify({
-                    courses: list,
-                    to: document.querySelector("#recipient-name").value
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(function (response) {
-                return response.json();
-            }).then(function (data) {
-                data = JSON.parse(data)
-                if (data.message && data.message === "OK") {
-                    $("#email_modal").modal('toggle')
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Email Timetable',
-                        text: `Your message was successfully sent to ${document.querySelector("#recipient-name").value}`,
-                    })
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'Something went wrong!',
-                    })
-                }
-                // Success
-            });
-        });
-        let sheets = `<%= sheets %>`.split(',')
-        document.querySelectorAll('.dropdown-item').forEach((btn, index) => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log(index)
-                document.querySelector('#campuses').value = index;
-                if (index == 0) {
-                    document.querySelector('.main-text').textContent = "ALL CAMPUSES";
-                } else {
-                    document.querySelector('.main-text').textContent = sheets[index - 1];
-                }
-            })
-        })
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        let mm = today.getMonth() + 1;
-        let dd = today.getDate();
-
-        if (dd < 10) dd = '0' + dd;
-        if (mm < 10) mm = '0' + mm;
-
-        const formattedToday = dd + '-' + mm + '-' + yyyy;
-        var doc = new jsPDF('p', 'pt', 'letter');
-        var htmlstring = '';
-        var tempVarToCheckPageHeight = 0;
-        var pageHeight = 0;
-        pageHeight = doc.internal.pageSize.height;
-        specialElementHandlers = {
-            // element with id of "bypass" - jQuery style selector  
-            '#bypassme': function (element, renderer) {
-                // true = "handled elsewhere, bypass text extraction"  
-                return true
-            }
-        };
-        margins = {
-            top: 150,
-            bottom: 60,
-            left: 40,
-            right: 40,
-            width: 600
-        };
-        var y = 20;
-        doc.setLineWidth(2);
-        doc.text(200, y = y + 30, "My Timetable");
-        doc.autoTable({
-            html: '.form-tablp',
-            startY: 70,
-            theme: 'grid'
-        })
-
-        $('#generatePDF').click(function () {
-            $('#exampleModalToggle22').modal('toggle')
-            doc.save(`My-Timetable-${formattedToday}.pdf`)
+    $('#generatePDF').click(function() {
+      $('#exampleModalToggle22').modal('toggle')
+      doc.save(`My-Timetable-${formattedToday}.pdf`)
 
 
-        });
-        $('#printPDF').click(function () {
-            $('#exampleModalToggle22').modal('toggle')
-            doc.autoPrint({
-                variant: 'non-conform'
-            })
-            doc.setProperties({
-                title: "My Exam Timetable"
-            });
-            window.open(doc.output('bloburl'), '_blank');
-        });
-    </script>
+    });
+    $('#printPDF').click(function() {
+      $('#exampleModalToggle22').modal('toggle')
+      doc.autoPrint({
+        variant: 'non-conform'
+      })
+      doc.setProperties({
+        title: "My Exam Timetable"
+      });
+      window.open(doc.output('bloburl'), '_blank');
+    });
+  </script>
 
-    <footer style="position: relative; right: 0; bottom: 0; text-align: left;">
+  <footer style="position: relative; right: 0; bottom: 0; text-align: left;">
 
-        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.005);">
-            © 2022 Copyright:
-            <a class="text-dark" href="#"> <span> <a href="https://github.com/topoika"
-                        target="_blank">Topoika</a></span>, <span> <a href="https://github.com/Kellymuterian"
-                        target="_blank">Muterian</a></span>, <span> <a href="https://github.com/john-muinde"
-                        target="_blank">Muinde</a></span></a>
-            <br>
-            Powered by:
-            <a href="https://dita-ee649.web.app/" target="_blank">DITA</a>
-        </div>
+    <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.005);">
+      © 2022 Copyright:
+      <a class="text-dark" href="#"> <span> <a href="https://github.com/topoika" target="_blank">Topoika</a></span>, <span> <a href="https://github.com/Kellymuterian" target="_blank">Muterian</a></span>, <span> <a href="https://github.com/john-muinde" target="_blank">Muinde</a></span></a>
+      <br>
+      Powered by:
+      <a href="https://dita-ee649.web.app/" target="_blank">DITA</a>
+    </div>
 
-    </footer>
+  </footer>
 </body>
 
 </html>

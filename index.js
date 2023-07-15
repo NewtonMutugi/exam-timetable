@@ -1,6 +1,11 @@
-const { getSheets, getAllSheetsData, Semester } = require("./models/tables");
+const {
+  getSheets,
+  getAllSheetsData,
+  Semester,
+  findCollidingLessons,
+} = require("./models/tables");
 const http = require("http");
-// const multer = require("multer");
+const multer = require("multer");
 const bodyParser = require("body-parser");
 const fs = require("fs");
 
@@ -26,24 +31,24 @@ app.get("/", async (req, res, next) => {
     campus_choice: "ALL CAMPUSES",
     sheets: await getSheets(),
     items_list: [],
+    clashing_units: [],
   });
 });
 
 app.get("/api/courses", async (req, res, next) => {
   let { courses, campus_choice } = req.query;
   if (!courses) {
-    return res.status(400).json({"error": "missing courses"});
+    return res.status(400).json({ error: "missing courses" });
   }
-  
-  courses = courses.replace(/^,|,$|,(?=,)/g, "").trim(); 
-  courses = courses.replaceAll(" ","");
+
+  courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
+  courses = courses.replaceAll(" ", "");
 
   let data = await getAllSheetsData(
     courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
     parseInt(campus_choice)
   );
   res.json({ data: data });
-  
 });
 
 app.get("/api/sheets", async (req, res, next) => {
@@ -57,7 +62,11 @@ app.get("/search", async (req, res, next) => {
     return res.redirect("/");
   }
   let mySheets = await getSheets();
-    courses = courses.replaceAll(" ","");
+  courses = courses.replaceAll(" ", "");
+  let presentingData = await getAllSheetsData(
+    courses.split(/[, ]+/),
+    parseInt(campus_choice)
+  );
   res.render("index", {
     docTitle: "My - Exam Timetable",
     path: "/",
@@ -66,18 +75,20 @@ app.get("/search", async (req, res, next) => {
       mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
       "ALL CAMPUSES",
     sheets: mySheets,
-    items_list: await getAllSheetsData(
-      courses.split(/[, ]+/),
-      parseInt(campus_choice)
-    ),
+    items_list: presentingData,
+    clashing_units: findCollidingLessons(presentingData),
   });
 });
 
 app.post("/search", async (req, res, next) => {
   let { courses, campus_choice } = req.body;
   courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
-  courses = courses.replaceAll(" ","");
+  courses = courses.replaceAll(" ", "");
   let mySheets = await getSheets();
+  let presentingData = await getAllSheetsData(
+    courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
+    parseInt(campus_choice)
+  );
   res.render("index", {
     docTitle: "My - Exam Timetable",
     path: "/",
@@ -86,10 +97,8 @@ app.post("/search", async (req, res, next) => {
       mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
       "ALL CAMPUSES",
     sheets: mySheets,
-    items_list: await getAllSheetsData(
-      courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
-      parseInt(campus_choice)
-    ),
+    items_list: presentingData,
+    clashing_units: findCollidingLessons(presentingData),
   });
 });
 
@@ -284,7 +293,7 @@ function sendMessage(courses, to, cb) {
     port: null,
     path: "/v5/mail/send",
     headers: {
-      api_key: "3b9f966442a92852d97294e0809a1e16",
+      api_key: process.env.SEND_GRID_KEY,
       "content-type": "application/json",
     },
   };
@@ -332,35 +341,37 @@ app.post("/send/email", (req, res, next) => {
 });
 
 app.get("/admin", (req, res, next) => {
-  // const { courses, to } = req.body;
-  var folders = fs.readdirSync("data/2022");
-  var objArray = [];
-  folders.forEach((folder) => {
-    var obj = {};
-    var files = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
-    obj.folder = folder;
-    obj.files = files.map((fila) => {
-      // console.log(
-      //   fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`).size
-      // );
-      return {
-        name: fila,
-        size:
-          fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
-            .size < 1024
-            ? fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
-                .size + " KB"
-            : (
-                fs.statSync(
-                  `data/${new Date().getFullYear()}/${folder}/${fila}`
-                ).size /
-                (1024 * 1024)
-              ).toFixed(2) + " MB",
-      };
-    });
+  const targetYears = ["2022"];
+  const objArray = [];
 
-    objArray.push(obj);
+  targetYears.forEach((year) => {
+    const folders = fs.readdirSync(`data/${year}`);
+
+    folders.forEach((folder) => {
+      const obj = {};
+      const files = fs.readdirSync(`data/${year}/${folder}`);
+
+      obj.folder = folder;
+      obj.files = files.map((file) => {
+        const filePath = `data/${year}/${folder}/${file}`;
+        const fileStats = fs.statSync(filePath);
+        const fileSize =
+          fileStats.size < 1024
+            ? fileStats.size + " KB"
+            : (fileStats.size / (1024 * 1024)).toFixed(2) + " MB";
+
+        return {
+          name: file,
+          size: fileSize,
+        };
+      });
+
+      objArray.push(obj);
+    });
   });
+
+  console.log(objArray);
+
   res.render("admin/uploads", { files: objArray });
 });
 
@@ -369,54 +380,57 @@ app.get("/admin", (req, res, next) => {
 //   res.render("admin/dashboard");
 // });
 
-// app.post("/upload", async (req, res) => {
-//   // console.log(req);
-//   var storage = multer.diskStorage({
-//     destination: `data/${new Date().getFullYear()}/${
-//       req.body.semester || Semester
-//     }-SEMESTER`,
+app.post("/upload", async (req, res) => {
+  // console.log(req);
+  var storage = multer.diskStorage({
+    destination: `data/${new Date().getFullYear()}/${
+      req.body.semester || Semester.toUpperCase()
+    }-SEMESTER`,
 
-//     filename: function (req, file, callback) {
-//       callback(null, file.originalname);
-//     },
-//   });
+    filename: function (req, file, callback) {
+      callback(null, file.originalname);
+    },
+  });
 
-//   var upload = multer({ storage: storage }).single("file");
+  var upload = multer({ storage: storage }).single("file");
 
-//   upload(req, res, function (err) {
-//     // console.log(req.body);
-//     var folders = fs.readdirSync("data/2022");
-//     var objArray = [];
-//     folders.forEach((folder) => {
-//       var obj = {};
-//       var files = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
-//       obj.folder = folder;
-//       obj.files = files.map((fila) => {
-//         return {
-//           name: fila,
-//           size:
-//             fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
-//               .size < 1024
-//               ? fs.statSync(
-//                   `data/${new Date().getFullYear()}/${folder}/${fila}`
-//                 ).size + " KB"
-//               : (
-//                   fs.statSync(
-//                     `data/${new Date().getFullYear()}/${folder}/${fila}`
-//                   ).size /
-//                   (1024 * 1024)
-//                 ).toFixed(2) + " MB",
-//         };
-//       });
-//       objArray.push(obj);
-//     });
-//     if (err) {
-//       res.status(400).send({ error: err, files: objArray });
-//     } else {
-//       res.status(200).send({ message: "success", files: objArray });
-//     }
-//   });
-// });
+  upload(req, res, function (err) {
+    // console.log(req.body);
+    var folders = fs.readdirSync("data/2022");
+    var objArray = [];
+    folders.forEach((folder) => {
+      var obj = {};
+      var semester_folders = fs.readdirSync(`data/${new Date().getFullYear()}/` + folder);
+      if(!semester_folders){
+        return;
+      }
+      obj.folder = folder;
+      obj.files = semester_folders.map((fila) => {
+        return {
+          name: fila,
+          size:
+            fs.statSync(`data/${new Date().getFullYear()}/${folder}/${fila}`)
+              .size < 1024
+              ? fs.statSync(
+                  `data/${new Date().getFullYear()}/${folder}/${fila}`
+                ).size + " KB"
+              : (
+                  fs.statSync(
+                    `data/${new Date().getFullYear()}/${folder}/${fila}`
+                  ).size /
+                  (1024 * 1024)
+                ).toFixed(2) + " MB",
+        };
+      });
+      objArray.push(obj);
+    });
+    if (err) {
+      res.status(400).send({ error: err, files: objArray });
+    } else {
+      res.status(200).send({ message: "success", files: objArray });
+    }
+  });
+});
 
 app.use((req, res, next) => {
   res

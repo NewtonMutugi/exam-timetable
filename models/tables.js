@@ -1,6 +1,6 @@
 const xlsxFile = require("read-excel-file/node");
 let Semester = "August";
-let fileName = `./data/Data_3.xlsx`;
+let fileName = `./data/FINAL.xlsx`;
 
 async function getSheets() {
   let sheets = [];
@@ -148,6 +148,7 @@ async function getCourses(params, sheetNumber) {
       }
     });
   }
+
   return foundItem;
 }
 
@@ -171,21 +172,48 @@ async function getAllSheetsData(params, sheetNumber = 0) {
       let myData = await getCourses(params, index + 1);
       allData.push(myData);
     }
+    formattedData = allData
+      .flat()
+      .slice(0)
+      .sort(function (a, b) {
+        var [x, y] = [
+          a.day.split(" ")[1].split("/").reverse().join(),
+          b.day.split(" ")[1].split("/").reverse().join(),
+        ];
 
-    return resolve(
-      allData
-        .flat()
-        .slice(0)
-        .sort(function (a, b) {
-          var [x, y] = [
-            a.day.split(" ")[1].split("/").reverse().join(),
-            b.day.split(" ")[1].split("/").reverse().join(),
-          ];
+        return x < y ? -1 : x > y ? 1 : 0;
+      });
 
-          return x < y ? -1 : x > y ? 1 : 0;
-        })
-    );
+    return resolve(formattedData);
   });
 }
 
-module.exports = { Semester, getCourses, getSheets, getAllSheetsData };
+function findCollidingLessons(lessons) {
+  const collidingLessons = [];
+  const groupedLessons = {};
+
+  for (const lesson of lessons) {
+    const key = lesson.day + lesson.time;
+    if (groupedLessons[key]) {
+      groupedLessons[key].push(lesson);
+    } else {
+      groupedLessons[key] = [lesson];
+    }
+  }
+
+  for (const key in groupedLessons) {
+    if (groupedLessons[key].length > 1) {
+      collidingLessons.push(groupedLessons[key]);
+    }
+  }
+
+  return collidingLessons;
+}
+
+module.exports = {
+  Semester,
+  getCourses,
+  getSheets,
+  getAllSheetsData,
+  findCollidingLessons,
+};

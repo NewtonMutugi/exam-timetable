@@ -3,47 +3,47 @@ const {
   getAllSheetsData,
   Semester,
   findCollidingLessons,
-} = require("./models/tables");
-const http = require("http");
-const multer = require("multer");
-const bodyParser = require("body-parser");
-const fs = require("fs");
-require('dotenv').config()
+} = require('./models/tables');
+const http = require('http');
+const multer = require('multer');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+require('dotenv').config();
 
-const express = require("express");
-const path = require("path");
+const express = require('express');
+const path = require('path');
 
 const app = express();
 
 const server = http.createServer(app);
 
-app.set("view engine", "ejs");
-app.set("views", "views");
+app.set('view engine', 'ejs');
+app.set('views', 'views');
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.get("/", async (req, res, next) => {
-  res.render("index", {
-    docTitle: "My - Exam Timetable",
-    path: "/",
-    input: "",
-    campus_choice: "ALL CAMPUSES",
+app.get('/', async (req, res, next) => {
+  res.render('index', {
+    docTitle: 'My - Exam Timetable',
+    path: '/',
+    input: '',
+    campus_choice: 'ALL CAMPUSES',
     sheets: await getSheets(),
     items_list: [],
     clashing_units: [],
   });
 });
 
-app.get("/api/courses", async (req, res, next) => {
+app.get('/api/courses', async (req, res, next) => {
   let { courses, campus_choice } = req.query;
   if (!courses) {
-    return res.status(400).json({ error: "missing courses" });
+    return res.status(400).json({ error: 'missing courses' });
   }
 
-  courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
-  courses = courses.replaceAll(" ", "");
+  courses = courses.replace(/^,|,$|,(?=,)/g, '').trim();
+  courses = courses.replaceAll(' ', '');
 
   let data = await getAllSheetsData(
     courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
@@ -52,51 +52,51 @@ app.get("/api/courses", async (req, res, next) => {
   res.json({ data: data });
 });
 
-app.get("/api/sheets", async (req, res, next) => {
+app.get('/api/sheets', async (req, res, next) => {
   let mySheets = await getSheets();
   res.json({ data: mySheets });
 });
 
-app.get("/search", async (req, res, next) => {
+app.get('/search', async (req, res, next) => {
   const { courses, campus_choice } = req.query;
   if (!courses) {
-    return res.redirect("/");
+    return res.redirect('/');
   }
   let mySheets = await getSheets();
-  courses = courses.replaceAll(" ", "");
+  courses = courses.replaceAll(' ', '');
   let presentingData = await getAllSheetsData(
     courses.split(/[, ]+/),
     parseInt(campus_choice)
   );
-  res.render("index", {
-    docTitle: "My - Exam Timetable",
-    path: "/",
+  res.render('index', {
+    docTitle: 'My - Exam Timetable',
+    path: '/',
     input: courses,
     campus_choice:
       mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
-      "ALL CAMPUSES",
+      'ALL CAMPUSES',
     sheets: mySheets,
     items_list: presentingData,
     clashing_units: findCollidingLessons(presentingData),
   });
 });
 
-app.post("/search", async (req, res, next) => {
+app.post('/search', async (req, res, next) => {
   let { courses, campus_choice } = req.body;
-  courses = courses.replace(/^,|,$|,(?=,)/g, "").trim();
-  courses = courses.replaceAll(" ", "");
+  courses = courses.replace(/^,|,$|,(?=,)/g, '').trim();
+  courses = courses.replaceAll(' ', '');
   let mySheets = await getSheets();
   let presentingData = await getAllSheetsData(
     courses.length > 0 ? courses.split(/[, ]+/).filter((e) => e) : [],
     parseInt(campus_choice)
   );
-  res.render("index", {
-    docTitle: "My - Exam Timetable",
-    path: "/",
+  res.render('index', {
+    docTitle: 'My - Exam Timetable',
+    path: '/',
     input: courses,
     campus_choice:
       mySheets[campus_choice > 0 ? campus_choice - 1 : undefined] ||
-      "ALL CAMPUSES",
+      'ALL CAMPUSES',
     sheets: mySheets,
     items_list: presentingData,
     clashing_units: findCollidingLessons(presentingData),
@@ -256,7 +256,7 @@ function sendMessage(courses, to, cb) {
                                     </td>
                                   </tr>
                                 </tbody>
-                               
+
                               </table>
                               <table class="s-6 w-full" role="presentation" border="0" cellpadding="0" cellspacing="0" style="width: 100%;" width="100%">
                                 <tbody>
@@ -289,24 +289,24 @@ function sendMessage(courses, to, cb) {
   </html>
   `;
   var options = {
-    method: "POST",
-    hostname: "emailapi.netcorecloud.net",
+    method: 'POST',
+    hostname: 'emailapi.netcorecloud.net',
     port: null,
-    path: "/v5/mail/send",
+    path: '/v5/mail/send',
     headers: {
       api_key: process.env.SEND_GRID_KEY,
-      "content-type": "application/json",
+      'content-type': 'application/json',
     },
   };
 
   var req = http.request(options, function (res) {
     var chunks = [];
 
-    res.on("data", function (chunk) {
+    res.on('data', function (chunk) {
       chunks.push(chunk);
     });
 
-    res.on("end", function () {
+    res.on('end', function () {
       var body = Buffer.concat(chunks);
       cb(body.toString());
     });
@@ -315,25 +315,25 @@ function sendMessage(courses, to, cb) {
   req.write(
     JSON.stringify({
       from: {
-        email: "info@fixafrica.co.ke",
-        name: "Your Timetable",
+        email: 'info@fixafrica.co.ke',
+        name: 'Your Timetable',
       },
-      subject: "You request for an emailed Exam Timetable",
+      subject: 'You request for an emailed Exam Timetable',
       content: [
         {
-          type: "html",
+          type: 'html',
           value: html_content,
         },
       ],
       personalizations: [
-        { to: [{ email: `${to}`, name: "Kimworks Timetable" }] },
+        { to: [{ email: `${to}`, name: 'Kimworks Timetable' }] },
       ],
     })
   );
   req.end();
 }
 
-app.post("/send/email", (req, res, next) => {
+app.post('/send/email', (req, res, next) => {
   const { courses, to } = req.body;
   sendMessage(courses, to, (dataReceived) => {
     let sending = dataReceived;
@@ -341,8 +341,8 @@ app.post("/send/email", (req, res, next) => {
   });
 });
 
-app.get("/admin", (req, res, next) => {
-  const targetYears = fs.readdirSync("data").filter((year) => {
+app.get('/admin', (req, res, next) => {
+  const targetYears = fs.readdirSync('data').filter((year) => {
     const yearPath = `data/${year}`;
     return fs.lstatSync(yearPath).isDirectory();
   });
@@ -356,15 +356,15 @@ app.get("/admin", (req, res, next) => {
       const obj = {};
       const files = fs.readdirSync(`data/${year}/${folder}`);
 
-      obj.year = year
+      obj.year = year;
       obj.folder = folder;
       obj.files = files.map((file) => {
         const filePath = `data/${year}/${folder}/${file}`;
         const fileStats = fs.statSync(filePath);
         const fileSize =
           fileStats.size < 1024
-            ? fileStats.size + " KB"
-            : (fileStats.size / (1024 * 1024)).toFixed(2) + " MB";
+            ? fileStats.size + ' KB'
+            : (fileStats.size / (1024 * 1024)).toFixed(2) + ' MB';
         return {
           name: file,
           size: fileSize,
@@ -376,7 +376,7 @@ app.get("/admin", (req, res, next) => {
   });
   objArray.reverse();
 
-  res.render("admin/uploads", { files: objArray });
+  res.render('admin/uploads', { files: objArray });
 });
 
 // app.get("/admin/dashboard", (req, res, next) => {
@@ -384,7 +384,7 @@ app.get("/admin", (req, res, next) => {
 //   res.render("admin/dashboard");
 // });
 
-app.post("/upload", async (req, res) => {
+app.post('/upload', async (req, res) => {
   // console.log(req);
   var storage = multer.diskStorage({
     destination: `data/${new Date().getFullYear()}/${
@@ -396,10 +396,10 @@ app.post("/upload", async (req, res) => {
     },
   });
 
-  var upload = multer({ storage: storage }).single("file");
+  var upload = multer({ storage: storage }).single('file');
 
   upload(req, res, function (err) {
-    var folders = fs.readdirSync("data/2022");
+    var folders = fs.readdirSync('data/2022');
     var objArray = [];
     folders.forEach((folder) => {
       var obj = {};
@@ -418,13 +418,13 @@ app.post("/upload", async (req, res) => {
               .size < 1024
               ? fs.statSync(
                   `data/${new Date().getFullYear()}/${folder}/${fila}`
-                ).size + " KB"
+                ).size + ' KB'
               : (
                   fs.statSync(
                     `data/${new Date().getFullYear()}/${folder}/${fila}`
                   ).size /
                   (1024 * 1024)
-                ).toFixed(2) + " MB",
+                ).toFixed(2) + ' MB',
         };
       });
       objArray.push(obj);
@@ -432,7 +432,7 @@ app.post("/upload", async (req, res) => {
     if (err) {
       res.status(400).send({ error: err, files: objArray });
     } else {
-      res.status(200).send({ message: "success", files: objArray });
+      res.status(200).send({ message: 'success', files: objArray });
     }
   });
 });
@@ -440,7 +440,9 @@ app.post("/upload", async (req, res) => {
 app.use((req, res, next) => {
   res
     .status(404)
-    .render("404", { docTitle: "404 Page Not Found Error", path: "/404" });
+    .render('404', { docTitle: '404 Page Not Found Error', path: '/404' });
 });
 
-server.listen(3000);
+server.listen(3000, () => {
+  console.log('Server started on port 3000');
+});

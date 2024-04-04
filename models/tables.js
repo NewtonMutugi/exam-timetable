@@ -3,7 +3,8 @@ const xlsxFile = require('read-excel-file/node');
 
 let Semester = 'January';
 
-let fileName = `../data/2024/AUGUST-SEMESTER/DRAFT_ EXAMINATION TIMETABLE -JANUARY 2024.xlsx`;
+
+let fileName = "DRAFT2024.xlssx";
 
 async function getSheets() {
   let sheets = [];

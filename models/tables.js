@@ -3,8 +3,7 @@ const xlsxFile = require('read-excel-file/node');
 
 let Semester = 'January';
 
-
-let fileName = "DRAFT2024.xlssx";
+let fileName = 'DRAFT2024.xlsx';
 
 async function getSheets() {
   let sheets = [];

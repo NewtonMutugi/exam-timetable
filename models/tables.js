@@ -1,16 +1,18 @@
-const xlsxFile = require('read-excel-file/node');
+const xlsxFile = require("read-excel-file/node");
+
+require("dotenv").config();
 // let Semester = "August";
 
-let Semester = 'January';
+let Semester = "January";
 
-let fileName = 'DRAFT2024.xlsx';
+let fileName = process.env.SEMESTER_FILE_NAME;
 
 async function getSheets() {
   let sheets = [];
   sheets = await xlsxFile.readSheetNames(fileName);
   sheets.forEach((eleme, index, array) => {
-    if (eleme.includes('NAI')) {
-      array[index] = 'NAIR ' + eleme.split('NAIROBI')[1];
+    if (eleme.includes("NAI")) {
+      array[index] = "NAIR " + eleme.split("NAIROBI")[1];
     }
   });
   return sheets;
@@ -107,17 +109,17 @@ async function getCourses(params, sheetNumber) {
     variablesWithoutNull.forEach((element, index) => {
       if (
         element.some((arriri, indexiis) =>
-          arriri.split(/[ ]/).join('').includes(searchString)
+          arriri.split(/[ ]/).join("").includes(searchString)
         )
       ) {
         let elements = [];
         elements = element.filter((arr, ind) => {
-          arr = arr.split(' ').join('');
-          const hasTwoOrFewerSlashes = arr.split('/').length <= 2;
+          arr = arr.split(" ").join("");
+          const hasTwoOrFewerSlashes = arr.split("/").length <= 2;
           const meetsComplexCriteria =
-            ind !== 0 && !arr.includes('CHAPEL') && !/.+\-.+/.test(arr);
+            ind !== 0 && !arr.includes("CHAPEL") && !/.+\-.+/.test(arr);
           const containsSearchString = arr.includes(
-            searchString.replace(/\s/g, '')
+            searchString.replace(/\s/g, "")
           );
           return (
             hasTwoOrFewerSlashes && meetsComplexCriteria && containsSearchString
@@ -161,8 +163,8 @@ async function getAllSheetsData(params, sheetNumber = 0) {
       return resolve(
         (await getCourses(params, sheetNumber)).slice(0).sort(function (a, b) {
           var [x, y] = [
-            a.day.split(' ')[1].split('/').reverse().join(),
-            b.day.split(' ')[1].split('/').reverse().join(),
+            a.day.split(" ")[1].split("/").reverse().join(),
+            b.day.split(" ")[1].split("/").reverse().join(),
           ];
 
           return x < y ? -1 : x > y ? 1 : 0;
@@ -180,8 +182,8 @@ async function getAllSheetsData(params, sheetNumber = 0) {
       .slice(0)
       .sort(function (a, b) {
         var [x, y] = [
-          a.day.split(' ')[1].split('/').reverse().join(),
-          b.day.split(' ')[1].split('/').reverse().join(),
+          a.day.split(" ")[1].split("/").reverse().join(),
+          b.day.split(" ")[1].split("/").reverse().join(),
         ];
 
         return x < y ? -1 : x > y ? 1 : 0;

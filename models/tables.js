@@ -5,7 +5,7 @@ require("dotenv").config();
 
 let Semester = "January";
 
-let fileName = process.env.SEMESTER_FILE_NAME;
+let fileName = "data/DRAFT2024.xlsx";
 
 async function getSheets() {
   let sheets = [];

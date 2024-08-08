@@ -3,7 +3,7 @@ const {
   getAllSheetsData,
   Semester,
   findCollidingLessons,
-} = require('./models/tables');
+} = require('../models/tables');
 
 const http = require('http');
 const multer = require('multer');

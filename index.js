@@ -3,12 +3,14 @@ const {
   getAllSheetsData,
   Semester,
   findCollidingLessons,
-} = require('../models/tables');
+} = require('./src/models/tables');
 
 const http = require('http');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const serverless = require('serverless-http');
+const ejs = require('ejs');
 
 require('dotenv').config();
 
@@ -25,8 +27,11 @@ app.set('views', 'views');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
+const router = express.Router();
 
-app.get('/', async (req, res, next) => {
+app.use('/.netlify/functions/api', router);
+
+router.get('/', async (req, res, next) => {
   res.render('index', {
     docTitle: 'My - Exam Timetable',
     path: '/',
@@ -38,7 +43,7 @@ app.get('/', async (req, res, next) => {
   });
 });
 
-app.get('/api/courses', async (req, res, next) => {
+router.get('/api/courses', async (req, res, next) => {
   let { courses, campus_choice } = req.query;
   if (!courses) {
     return res.status(400).json({ error: 'missing courses' });
@@ -54,12 +59,12 @@ app.get('/api/courses', async (req, res, next) => {
   res.json({ data: data });
 });
 
-app.get('/api/sheets', async (req, res, next) => {
+router.get('/api/sheets', async (req, res, next) => {
   let mySheets = await getSheets();
   res.json({ data: mySheets });
 });
 
-app.get('/search', async (req, res, next) => {
+router.get('/search', async (req, res, next) => {
   const { courses, campus_choice } = req.query;
   if (!courses) {
     return res.redirect('/');
@@ -83,7 +88,7 @@ app.get('/search', async (req, res, next) => {
   });
 });
 
-app.post('/search', async (req, res, next) => {
+router.post('/search', async (req, res, next) => {
   let { courses, campus_choice } = req.body;
   courses = courses.replace(/^,|,$|,(?=,)/g, '').trim();
   courses = courses.replaceAll(' ', '');
@@ -335,7 +340,7 @@ function sendMessage(courses, to, cb) {
   req.end();
 }
 
-app.post('/send/email', (req, res, next) => {
+router.post('/send/email', (req, res, next) => {
   const { courses, to } = req.body;
   sendMessage(courses, to, (dataReceived) => {
     let sending = dataReceived;
@@ -343,7 +348,7 @@ app.post('/send/email', (req, res, next) => {
   });
 });
 
-app.get('/admin', (req, res, next) => {
+router.get('/admin', (req, res, next) => {
   const targetYears = fs.readdirSync('data').filter((year) => {
     const yearPath = `data/${year}`;
     return fs.lstatSync(yearPath).isDirectory();
@@ -381,12 +386,12 @@ app.get('/admin', (req, res, next) => {
   res.render('admin/uploads', { files: objArray });
 });
 
-// app.get("/admin/dashboard", (req, res, next) => {
+// router.get("/admin/dashboard", (req, res, next) => {
 //   // const { courses, to } = req.body;
 //   res.render("admin/dashboard");
 // });
 
-app.post('/upload', async (req, res) => {
+router.post('/upload', async (req, res) => {
   // console.log(req);
   var storage = multer.diskStorage({
     destination: `data/${new Date().getFullYear()}/${
@@ -448,3 +453,5 @@ app.use((req, res, next) => {
 server.listen(3001, () => {
   console.log('Server started on port 3001');
 });
+
+module.exports.handler = serverless(app);

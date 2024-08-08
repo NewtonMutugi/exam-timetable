@@ -3,7 +3,7 @@ const xlsxFile = require('read-excel-file/node');
 require('dotenv').config();
 // let Semester = "August";
 
-let Semester = 'January';
+let Semester = 'May';
 
 let fileName = 'data/DRAFT2024.xlsx';
 

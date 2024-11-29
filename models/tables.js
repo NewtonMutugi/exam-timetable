@@ -3,9 +3,9 @@ const xlsxFile = require('read-excel-file/node');
 require('dotenv').config();
 // let Semester = "August";
 
-let Semester = 'May';
+let Semester = 'September';
 
-let fileName = 'data/DRAFT2024.xlsx';
+let fileName = 'data/DRAFT_EXAMINATION TIMETABLE -SEPTEMBER 2024.xls';
 
 async function getSheets() {
   let sheets = [];

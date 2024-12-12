@@ -24,6 +24,8 @@
       <h3>My Exam TimeTable</h3>
       <p class="my-3s">Enter you courses below and click submit to get a simplified Timetable (clashing units are
         highlighted)</p>
+      <p class="my-3s">Click login to automatically load your registered units from the school portal.</p>
+
       <form id="search" method="post" action="/search">
         <div class="input-group mb-4">
           <input type="text" class="mr-2 form-control rounded" id="courses" name="courses" value="<%= input %>"
@@ -46,6 +48,8 @@
           <%= items_list.length %> items
         </span>
         <button class="btn btn-primary ml-1 mb-2 px-4" type="submit" id="button-addon2">Submit</button>
+        <button id="loginButton" class="btn btn-primary ml-1 mb-2 px-4">Login</button>
+
         <span class="dropdown float-right">
           <a class="btn btn-primary dropdown-toggle main-text text-white" role="button" id="dropdownMenuLink"
             data-mdb-toggle="dropdown" aria-expanded="false">
@@ -282,6 +286,73 @@
         </div>
       </div>
     </div>
+
+    <!--Login modal-->
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="loginModalLabel">Login</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- Your login form goes here -->
+            <div class="card">
+              <div class="card-body p-4">
+                <div class="text-center w-75 m-auto">
+                  <div class="auth-logo">
+                    <a href="#" class="logo logo-dark text-center">
+                      <span class="logo-lg">
+                        <img src="/images/logo.png" alt="" height="120" width="100%">
+                      </span>
+                    </a>
+                  </div>
+                </div>
+                <hr />
+                <div class="mb-2">
+                  <label for="emailaddress" class="form-label">Adm. Number</label>
+                  <input class="form-control" type="text" id="username" required="" placeholder="Adm. Number">
+                </div>
+
+                <div class="mb-2">
+                  <label for="password" class="form-label">Password</label>
+                  <div class="input-group input-group-merge">
+                    <input type="password" id="userpassword" class="form-control" placeholder="Password">
+
+                    <!-- <div class="input-group-text" data-password="false">
+                      <span class="password-eye"></span>
+                    </div> -->
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="checkbox-signin" checked>
+                    <label class="form-check-label" for="checkbox-signin">
+                      Remember me
+                    </label>
+                  </div>
+                </div>
+                <div class="d-grid mb-0 text-center">
+                  <button class="btn btn-primary" id="btnLogin" type="button" onclick="handleLogin()"> Log
+                    In </button>
+                </div>
+                <!-- <div class="row mt-3">
+                  <div class="col-12 text-center">
+                    <p> <a href="/Login/ForgotPassword" class="text-muted ms-1">Forgot your password?</a></p>
+                  </div>
+                </div> -->
+              </div> <!-- end card-body -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
@@ -429,6 +500,44 @@
         });
         window.open(doc.output('bloburl'), '_blank');
       });
+
+      // Login logic
+      document.getElementById('loginButton').addEventListener('click', function () {
+        $('#loginModal').modal('show'); // For Bootstrap
+        // OR
+        // const myModal = new mdb.Modal(document.getElementById('loginModal')); // For MDB
+        // myModal.show();
+      });
+
+      // Handle login
+      function handleLogin() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('userpassword').value;
+        fetch('/portal-login', {
+          method: 'POST',
+          body: JSON.stringify({
+            userlogin: {
+              username,
+              password
+            }
+          }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }).then(function (response) {
+          return response.json();
+        }).then(function (data) {
+          console.log(data);
+          if (data.success === true) {
+            alert("Login successful!");
+          } else {
+            alert("Login failed!");
+          }
+        }).catch(function (error) {
+          console.error('Error:', error);
+        });
+      }
+
     </script>
 
     <footer style="position: relative; right: 0; bottom: 0; text-align: left;">

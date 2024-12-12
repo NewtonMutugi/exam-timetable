@@ -439,6 +439,25 @@ app.post('/upload', async (req, res) => {
   });
 });
 
+app.post('/portal-login', async (req, res) => {
+  try {
+    const response = await fetch(
+      'https://student.daystar.ac.ke/login/loginuser',
+      {
+        method: 'POST',
+        body: JSON.stringify(req.body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.use((req, res, next) => {
   res
     .status(404)

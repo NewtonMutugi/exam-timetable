@@ -358,7 +358,7 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">Modal title</h5>
+            <h5 class="modal-title" id="staticBackdropLabel">Registered Units</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -607,8 +607,11 @@
         }).then(function (response) {
           return response.json();
         }).then(function (data) {
-          console.log(data);
-          populateRegisteredUnitsTable(data.data);
+          // console.log(data.data);
+          const rawTimeTable = data.data
+          const cutOffIndex = rawTimeTable.findIndex((item) => item.unit === "Courses in Timetable")
+          const trimmedTimeTable = cutOffIndex > -1 ? rawTimeTable.slice(0, cutOffIndex) : rawTimeTable
+          populateRegisteredUnitsTable(trimmedTimeTable);
           // Hide loading indicator and show table
           document.getElementById('loadingIndicator').style.display = 'none';
           document.getElementById('registeredUnitsTableContainer').style.display = 'block';

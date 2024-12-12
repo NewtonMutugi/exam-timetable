@@ -471,7 +471,7 @@ app.post('/portal-login', async (req, res) => {
 
     // Combine the session ID and auth token
     const sessionToken = `${sessionId}; ${authToken}`;
-    console.log(sessionToken);
+    // console.log(sessionToken);
 
     // Combine data and session token into a single JSON response
     res.json({ ...data, sessionToken });
@@ -483,7 +483,7 @@ app.post('/portal-login', async (req, res) => {
 app.get('/fetch-timetable', async (req, res) => {
   try {
     const token = req.headers.cookie;
-    console.log(`Fetch Token: ${token}`);
+    // console.log(`Fetch Token: ${token}`);
     const dataList = await fetchUserTimeTable(token);
     res.json({ data: dataList });
   } catch (error) {

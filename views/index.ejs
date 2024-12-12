@@ -152,7 +152,7 @@
                     <div class="modal-header">
                       <h5 class="modal-title" id="exampleModalLongTitle">My Timetable <%= items_list.length %> items
                       </h5>
-                      <button type="button" class="close" data-mdb-dismiss="modal" aria-label="Close">
+                      <button type="button" class="close" data-mdb-dismiss="modal" aria-label="Close" id="btnClose">
                         <span aria-hidden="true">&times;</span>
                       </button>
                     </div>
@@ -295,12 +295,12 @@
 
     <!--Login modal-->
     <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel"
-      aria-hidden="true">
+      aria-hidden="true" data-backdrop="static">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="loginModalLabel">Login</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <button type="button" id="closeLoginModal" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -365,7 +365,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="staticBackdropLabel">Registered Units</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="closeRegisteredUnitsModal">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
@@ -399,7 +399,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button> -->
             <button type="button" class="btn btn-primary" onclick="handleContinue()" id="btnContinue">Continue</button>
           </div>
         </div>
@@ -553,6 +553,32 @@
           title: "My Exam Timetable"
         });
         window.open(doc.output('bloburl'), '_blank');
+      });
+
+      // Make login modal static
+      $(document).ready(function () {
+        $('#loginModal').modal({
+          backdrop: 'static',
+          keyboard: false
+        });
+      });
+
+      // Make registered units modal static
+      $(document).ready(function () {
+        $('#registeredUnitsModal').modal({
+          backdrop: 'static',
+          keyboard: false
+        });
+      });
+
+      // Close login modal
+      document.getElementById('closeLoginModal').addEventListener('click', function () {
+        $('#loginModal').modal('hide');
+      });
+
+      // Close registered units modal
+      document.getElementById('closeRegisteredUnitsModal').addEventListener('click', function () {
+        $('#registeredUnitsModal').modal('hide');
       });
 
       // Show Login Modal

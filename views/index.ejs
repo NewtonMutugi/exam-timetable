@@ -393,10 +393,14 @@
                 </tbody>
               </table>
             </div>
+            <!-- No units found message -->
+            <div id="noUnitsFound" class="alert alert-warning" role="alert" style="display: none;">
+              No registered courses found! Click Login to try again.
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="handleContinue()">Continue</button>
+            <button type="button" class="btn btn-primary" onclick="handleContinue()" id="btnContinue">Continue</button>
           </div>
         </div>
       </div>
@@ -582,6 +586,17 @@
       function handleLogin() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('userpassword').value;
+
+        if (!username || !password) {
+          // Show sweet alert error message
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Please ensure all fields are filled!',
+          });
+          return;
+        }
+
         fetch('/portal-login', {
           method: 'POST',
           body: JSON.stringify({
@@ -596,9 +611,10 @@
         }).then(function (response) {
           return response.json();
         }).then(function (data) {
-          console.log(data);
+          // console.log(data);
+          document.getElementById('noUnitsFound').style.display = 'none';
           if (data.success === true) {
-            alert("Login successful!");
+            // alert("Login successful!");
 
             // Extract and set cookies
             const cookies = data.sessionToken.split(';');
@@ -616,7 +632,12 @@
             $('#loginModal').modal('hide');
             $('#registeredUnitsModal').modal('show');
           } else {
-            alert("Login failed!");
+            // Show sweet alert error message
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Login failed! Please check your credentials and try again.',
+            });
           }
         }).catch(function (error) {
           console.error('Error:', error);
@@ -636,6 +657,14 @@
           return response.json();
         }).then(async function (data) {
           // console.log(data.data);
+          if (data.data.length === 0) {
+            // Show no units found message
+            document.getElementById('noUnitsFound').style.display = 'block';
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('btnContinue').textContent = 'Login';
+            return;
+          }
+          document.getElementById('noUnitsFound').style.display = 'none';
           const rawTimeTable = data.data
           const cutOffIndex = rawTimeTable.findIndex((item) => item.unit === "Courses in Timetable")
           const trimmedTimeTable = cutOffIndex > -1 ? rawTimeTable.slice(0, cutOffIndex) : rawTimeTable
@@ -677,6 +706,12 @@
 
       // Handle continue button click
       function handleContinue() {
+        if (document.getElementById('btnContinue').textContent === 'Login') {
+          // Show login modal
+          $('#loginModal').modal('show');
+          $('#registeredUnitsModal').modal('hide');
+          return;
+        }
         const userTimeTable = JSON.parse(localStorage.getItem('userTimeTable'));
         const courses = userTimeTable.map(unit => {
           const sectionLetter = unit.section.charAt(0);

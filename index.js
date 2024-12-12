@@ -452,9 +452,16 @@ app.post('/portal-login', async (req, res) => {
       }
     );
     const data = await response.json();
+    // Set session cookies from response
+    // console.log(response.headers.get('Set-Cookie'));
+    const sessionToken = response.headers.get('Set-Cookie');
     res.json(data);
+    res.cookie('sessionToken', sessionToken, {
+      maxAge: 900000,
+      httpOnly: true,
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: error.message });
   }
 });
 

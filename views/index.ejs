@@ -606,11 +606,16 @@
           credentials: 'include' // Ensure cookies are included in the request
         }).then(function (response) {
           return response.json();
-        }).then(function (data) {
+        }).then(async function (data) {
           // console.log(data.data);
           const rawTimeTable = data.data
           const cutOffIndex = rawTimeTable.findIndex((item) => item.unit === "Courses in Timetable")
           const trimmedTimeTable = cutOffIndex > -1 ? rawTimeTable.slice(0, cutOffIndex) : rawTimeTable
+
+          await localStorage.setItem('userTimeTable', JSON.stringify(trimmedTimeTable));
+          console.log('Saved to localStorage:', localStorage.getItem('userTimeTable')); // Verify saving
+
+          // Populate registered units table
           populateRegisteredUnitsTable(trimmedTimeTable);
           // Hide loading indicator and show table
           document.getElementById('loadingIndicator').style.display = 'none';

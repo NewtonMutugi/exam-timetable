@@ -305,7 +305,6 @@
             </button>
           </div>
           <div class="modal-body">
-            <!-- Your login form goes here -->
             <div class="card">
               <div class="card-body p-4">
                 <div class="text-center w-75 m-auto">
@@ -327,10 +326,9 @@
                   <label for="password" class="form-label">Password</label>
                   <div class="input-group input-group-merge">
                     <input type="password" id="userpassword" class="form-control" placeholder="Password">
-
-                    <!-- <div class="input-group-text" data-password="false">
-                      <span class="password-eye"></span>
-                    </div> -->
+                    <div class="input-group-text" data-password="false" id="togglePassword">
+                      <span class="password-eye fas fa-eye"></span>
+                    </div>
                   </div>
                 </div>
 
@@ -670,11 +668,21 @@
         });
       }
 
+      // Toggle continue button
+      function toggleContinueButton() {
+        const btnContinue = document.getElementById('btnContinue');
+        btnContinue.disabled = !btnContinue.disabled;
+      }
+
+
       // Fetch registered units
       function fetchRegisteredUnits() {
         // Show loading indicator
         document.getElementById('loadingIndicator').style.display = 'block';
         document.getElementById('registeredUnitsTableContainer').style.display = 'none';
+
+        // Disable continue button
+        toggleContinueButton();
 
         fetch('/fetch-timetable', {
           method: 'GET',
@@ -688,6 +696,9 @@
             document.getElementById('noUnitsFound').style.display = 'block';
             document.getElementById('loadingIndicator').style.display = 'none';
             document.getElementById('btnContinue').textContent = 'Login';
+
+            // Enable Continue Button
+            toggleContinueButton();
             return;
           }
           document.getElementById('noUnitsFound').style.display = 'none';
@@ -703,7 +714,11 @@
           // Hide loading indicator and show table
           document.getElementById('loadingIndicator').style.display = 'none';
           document.getElementById('registeredUnitsTableContainer').style.display = 'block';
+          document.getElementById('btnContinue').textContent = 'Continue';
           $('#registeredUnitsModal').modal('show');
+
+          // Enable Continue Button
+          toggleContinueButton();
         }).catch(function (error) {
           console.error('Error:', error);
           // Hide loading indicator even if there's an error
@@ -753,9 +768,29 @@
         localStorage.clear();
         // Delete cookies
         document.cookie = 'ASP.NET_SessionId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
-
         location.reload();
+        Swal.fire({
+          icon: 'success',
+          title: 'Logged out successfully!',
+          text: 'You have been logged out successfully.',
+        });
       }
+
+      document.getElementById('togglePassword').addEventListener('click', function () {
+        const passwordField = document.getElementById('userpassword');
+        const passwordEye = this.querySelector('.password-eye');
+        const isPasswordVisible = passwordField.type === 'text';
+
+        if (isPasswordVisible) {
+          passwordField.type = 'password';
+          passwordEye.classList.remove('fa-eye-slash');
+          passwordEye.classList.add('fa-eye');
+        } else {
+          passwordField.type = 'text';
+          passwordEye.classList.remove('fa-eye');
+          passwordEye.classList.add('fa-eye-slash');
+        }
+      });
     </script>
 
     <footer style="position: relative; right: 0; bottom: 0; text-align: left;">

@@ -9,6 +9,7 @@ const http = require('http');
 const multer = require('multer');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const fetchUserTimeTable = require('./src/fetchUserTimeTable');
 
 require('dotenv').config();
 
@@ -437,6 +438,57 @@ app.post('/upload', async (req, res) => {
       res.status(200).send({ message: 'success', files: objArray });
     }
   });
+});
+
+app.post('/portal-login', async (req, res) => {
+  try {
+    const response = await fetch(
+      'https://student.daystar.ac.ke/login/loginuser',
+      {
+        method: 'POST',
+        body: JSON.stringify(req.body),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const data = await response.json();
+    const setCookieHeader = response.headers.get('Set-Cookie');
+
+    // Split the Set-Cookie header into individual cookies
+    const cookies = setCookieHeader.split(', ');
+
+    // Extract the ASP.NET_SessionId cookie
+    const sessionIdMatch = cookies.find((cookie) =>
+      cookie.startsWith('ASP.NET_SessionId')
+    );
+    const sessionId = sessionIdMatch?.split(';')[0];
+
+    // Extract the .ASPXAUTH cookie
+    const authMatch = cookies.find((cookie) => cookie.startsWith('.ASPXAUTH'));
+    const authToken = authMatch?.split(';')[0];
+
+    // Combine the session ID and auth token
+    const sessionToken = `${sessionId}; ${authToken}`;
+    // console.log(sessionToken);
+
+    // Combine data and session token into a single JSON response
+    res.json({ ...data, sessionToken });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/fetch-timetable', async (req, res) => {
+  try {
+    const token = req.headers.cookie;
+    // console.log(`Fetch Token: ${token}`);
+    const dataList = await fetchUserTimeTable(token);
+    res.json({ data: dataList });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.use((req, res, next) => {

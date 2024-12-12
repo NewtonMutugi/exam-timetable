@@ -523,7 +523,7 @@
         window.open(doc.output('bloburl'), '_blank');
       });
 
-      // Login logic
+      // Show Login Modal
       document.getElementById('loginButton').addEventListener('click', function () {
         $('#loginModal').modal('show'); // For Bootstrap
       });
@@ -544,12 +544,23 @@
             'Content-Type': 'application/json'
           }
         }).then(function (response) {
-          console.log(response);
           return response.json();
         }).then(function (data) {
           console.log(data);
           if (data.success === true) {
             alert("Login successful!");
+
+            // Extract and set cookies
+            const cookies = data.sessionToken.split(';');
+            cookies.forEach(cookie => {
+              const [name, value] = cookie.split('=');
+              if (name.trim() === 'ASP.NET_SessionId' || name.trim() === '.ASPXAUTH') {
+                document.cookie = `${name.trim()}=${value.trim()}; path=/; SameSite=Lax`;
+              }
+            });
+
+            // Fetch registered units
+            fetchRegisteredUnits();
           } else {
             alert("Login failed!");
           }
@@ -558,6 +569,20 @@
         });
       }
 
+      // Fetch registered units
+      function fetchRegisteredUnits() {
+        fetch('/fetch-timetable', {
+          method: 'GET',
+          credentials: 'include' // Ensure cookies are included in the request
+        }).then(function (response) {
+          return response.json();
+        }).then(function (data) {
+          console.log(data);
+          // Handle the fetched data
+        }).catch(function (error) {
+          console.error('Error:', error.message);
+        });
+      }
     </script>
 
     <footer style="position: relative; right: 0; bottom: 0; text-align: left;">

@@ -768,12 +768,6 @@
         localStorage.clear();
         // Delete cookies
         document.cookie = 'ASP.NET_SessionId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
-        location.reload();
-        Swal.fire({
-          icon: 'success',
-          title: 'Logged out successfully!',
-          text: 'You have been logged out successfully.',
-        });
       }
 
       document.getElementById('togglePassword').addEventListener('click', function () {
